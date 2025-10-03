@@ -1,0 +1,74 @@
+---
+import "../styles/heroui.css";
+
+import Header from "../component/Header";
+import Footer from "../component/Footer";
+
+// SEO Meta Tags
+const title = "Bersekolah - Platform Beasiswa dan Donasi Pendidikan Terpercaya";
+const description = "Bersekolah adalah platform beasiswa dan donasi pendidikan yang menghubungkan donatur dengan penerima beasiswa. Buka pintu pendidikan untuk masa depan yang lebih cerah.";
+const keywords = "beasiswa, donasi pendidikan, platform beasiswa, pendidikan Indonesia, beasiswa online, donasi online, pendidikan berkualitas";
+const ogImage = "/storage/bersekolah.png";
+const siteUrl = "https://bersekolah.com";
+---
+
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="generator" content={Astro.generator} />
+    
+    <!-- Primary Meta Tags -->
+    <title>{title}</title>
+    <meta name="title" content={title} />
+    <meta name="description" content={description} />
+    <meta name="keywords" content={keywords} />
+    <meta name="author" content="Bersekolah Team" />
+    <meta name="robots" content="index, follow" />
+    <meta name="language" content="Indonesian" />
+    <meta name="revisit-after" content="7 days" />
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="/storage/B-only.png" />
+    <link rel="shortcut icon" type="image/png" href="/storage/B-only.png" />
+    <link rel="apple-touch-icon" href="/storage/B-only.png" />
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={siteUrl} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:site_name" content="Bersekolah" />
+    <meta property="og:locale" content="id_ID" />
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content={siteUrl} />
+    <meta property="twitter:title" content={title} />
+    <meta property="twitter:description" content={description} />
+    <meta property="twitter:image" content={ogImage} />
+    
+    <!-- Additional SEO -->
+    <meta name="theme-color" content="#406386" />
+    <meta name="msapplication-TileColor" content="#406386" />
+    <meta name="msapplication-TileImage" content="/storage/B-only.png" />
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href={siteUrl} />
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json" />
+    
+    <!-- Preconnect to external domains -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  </head>
+  <body>
+    <Header client:visible />
+    <div id="app">
+      <slot />
+    </div>
+    <Footer client:visible />
+  </body>
+</html>

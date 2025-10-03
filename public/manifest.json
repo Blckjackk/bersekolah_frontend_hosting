@@ -1,0 +1,27 @@
+{
+  "name": "Bersekolah - Platform Beasiswa dan Donasi Pendidikan",
+  "short_name": "Bersekolah",
+  "description": "Platform beasiswa dan donasi pendidikan yang menghubungkan donatur dengan penerima beasiswa",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#406386",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/storage/B-only.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/storage/B-only.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["education", "social", "finance"],
+  "lang": "id",
+  "dir": "ltr"
+}

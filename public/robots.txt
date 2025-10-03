@@ -1,0 +1,19 @@
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://bersekolah.com/sitemap.xml
+
+# Disallow admin and dashboard pages
+Disallow: /admin/
+Disallow: /dashboard/
+Disallow: /masuk/
+Disallow: /daftar/
+Disallow: /api/
+
+# Allow important pages
+Allow: /
+Allow: /tentang-kami/
+Allow: /program-beasiswa/
+Allow: /cara-kerja/
+Allow: /kontak/
