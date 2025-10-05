@@ -6,8 +6,8 @@ const Hero = () => {
     <section className="relative mx-2 my-2 overflow-hidden rounded-xl sm:mx-4 sm:my-4 sm:rounded-2xl lg:mx-6 lg:my-6 lg:rounded-3xl xl:mx-8 xl:my-8 xl:rounded-4xl">
       {/* Background Image */}
       <img 
-        src="assets/image/hero/hero.png"
-        alt="Siswa bersemangat belajar"
+        src="assets/image/hero/hero-beasiswa.jpg"
+        alt="Program Beasiswa Bersekolah"
         className="absolute inset-0 object-cover w-full h-full brightness-75"
       />
 

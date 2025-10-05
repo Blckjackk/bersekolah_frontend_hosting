@@ -132,7 +132,7 @@ const ArtikelPage = () => {
         <div className="absolute inset-0 bg-gradient-to-br from-slate-900/95 via-[#406386]/90 to-[#406386]/85"></div>
         <div
           className="absolute inset-0 bg-center bg-no-repeat bg-cover opacity-30"
-          style={{ backgroundImage: "url('/assets/image/graduation-cap-sits-top-stack-books.jpg')" }}
+          style={{ backgroundImage: "url('/assets/image/hero/hero-faq.jpg')" }}
         ></div>
         <div className="container relative z-10 px-4 mx-auto text-center text-white sm:px-6 lg:px-8">
           <div className="max-w-5xl mx-auto">

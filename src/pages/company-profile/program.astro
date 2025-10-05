@@ -11,7 +11,7 @@ import AppLayout from "../../layout/app-layout.astro";
         <div class="absolute inset-0 bg-gradient-to-br from-slate-900/95 via-[#406386]/90 to-[#406386]/85"></div>
         <div 
             class="absolute inset-0 bg-center bg-no-repeat bg-cover opacity-30" 
-            style="background-image: url('/assets/image/company-profile/program-beasiswa.jpg');"
+            style="background-image: url('assets/image/hero/hero-beasiswa.jpg');"
         ></div>
 
         <div class="container relative z-10 px-4 mx-auto text-center text-white sm:px-6 lg:px-8">
@@ -149,57 +149,82 @@ import AppLayout from "../../layout/app-layout.astro";
                         }
                         
                         // Type definitions for API response
-                        interface CountdownResponse {
-                            days: number;
-                            hours: number;
-                            minutes: number;
-                            seconds: number;
-                            end_date?: string;
-                            status?: string;
-                            message?: string;
-                            tahun?: number;
-                            nama?: string;
+                        interface BeasiswaPeriod {
+                            id: number;
+                            tahun: number;
+                            nama_periode: string;
+                            deskripsi: string;
+                            mulai_pendaftaran: string;
+                            akhir_pendaftaran: string;
+                            mulai_beasiswa: string;
+                            akhir_beasiswa: string;
+                            status: 'draft' | 'active' | 'closed';
+                            is_active: boolean;
                         }
                         
-                        // API endpoint for countdown data
-                        const API_URL = '/api/countdown/pendaftaran';
+                        interface BeasiswaPeriodsResponse {
+                            success: boolean;
+                            message: string;
+                            data: BeasiswaPeriod[];
+                        }
                         
-                        // Fetch countdown data from API
+                        // API endpoint for beasiswa periods data
+                        const API_URL = `${import.meta.env.PUBLIC_API_BASE_URL || 'https://api.bersekolah.com/api'}/public/beasiswa-periods`;
+                        
+                        // Fetch beasiswa periods data from API
                         fetch(API_URL)
                             .then(response => {
                                 if (!response.ok) {
                                     throw new Error(`Network response was not ok: ${response.status} ${response.statusText}`);
                                 }
-                                return response.json() as Promise<CountdownResponse>;
+                                return response.json() as Promise<BeasiswaPeriodsResponse>;
                             })
-                            .then((data: CountdownResponse) => {
-                                console.log('Countdown data:', data);
+                            .then((data: BeasiswaPeriodsResponse) => {
+                                console.log('Beasiswa periods data:', data);
                                 
                                 // Hide loading indicator
                                 countdownLoading.classList.add('hidden');
-                                  // Handle expired registration or no active period
-                                if (!data) {
+                                
+                                // Check if we have data and periods
+                                if (!data || !data.data || data.data.length === 0) {
                                     countdownError.classList.remove('hidden');
                                     return;
                                 }
                                 
-                                // Check for expired registration (all zeros or specific message)
-                                if ((data.days === 0 && data.hours === 0 && data.minutes === 0 && data.seconds === 0) || 
-                                    data.message === 'Pendaftaran sudah ditutup.') {
-                                    countdownExpired.classList.remove('hidden');
-                                    return;
+                                // Find active period - more flexible logic
+                                console.log('All periods:', data.data);
+                                console.log('Looking for active period...');
+                                
+                                // Try different combinations to find active period
+                                let activePeriod = data.data.find(period => {
+                                    console.log(`Period ${period.id}: status=${period.status}, is_active=${period.is_active}`);
+                                    return period.status === 'active' && period.is_active === true;
+                                });
+                                
+                                // If no exact match, try more flexible criteria
+                                if (!activePeriod) {
+                                    console.log('No exact match found, trying flexible criteria...');
+                                    
+                                    // Try: status=active OR is_active=true
+                                    activePeriod = data.data.find(period => {
+                                        return period.status === 'active' || period.is_active === true;
+                                    });
+                                    
+                                    console.log('Found period with flexible criteria:', activePeriod);
                                 }
                                 
-                                // Check for error status or message
-                                if (data.message === 'Tidak ada periode beasiswa yang aktif saat ini.' || data.status === 'error') {
+                                console.log('Final active period:', activePeriod);
+                                
+                                if (!activePeriod) {
+                                    console.log('No active period found, showing error');
                                     countdownError.classList.remove('hidden');
                                     return;
                                 }
                                 
-                                // Extract end date from API response
-                                const endDateStr = data.end_date;
+                                // Extract end date from active period
+                                const endDateStr = activePeriod.akhir_pendaftaran;
                                 if (!endDateStr) {
-                                    console.error('No end date provided in API response');
+                                    console.error('No end date provided in active period');
                                     countdownError.classList.remove('hidden');
                                     return;
                                 }
@@ -213,15 +238,15 @@ import AppLayout from "../../layout/app-layout.astro";
                                     return;
                                 }
                                 
-                                // Initialize countdown with either API-provided values or calculated ones
-                                if (data.days !== undefined && data.hours !== undefined && 
-                                    data.minutes !== undefined && data.seconds !== undefined) {
-                                    // Use API-provided values for immediate display
-                                    updateCountdownWithValues(data.days, data.hours, data.minutes, data.seconds);
-                                } else {
-                                    // Calculate values from end_date
-                                    updateCountdown(endDate);
+                                // Check if registration has already ended
+                                const now = new Date();
+                                if (now >= endDate) {
+                                    countdownExpired.classList.remove('hidden');
+                                    return;
                                 }
+                                
+                                // Initialize countdown
+                                updateCountdown(endDate);
                                 
                                 // Update countdown every second
                                 const interval = setInterval(() => {
@@ -241,44 +266,6 @@ import AppLayout from "../../layout/app-layout.astro";
                                 }
                             });
                         
-                        // Update countdown with values provided by the API
-                        function updateCountdownWithValues(days: number, hours: number, minutes: number, seconds: number): void {
-                            // Check if countdown has expired
-                            if (days <= 0 && hours <= 0 && minutes <= 0 && seconds <= 0) {
-                                if (countdownDisplay && countdownExpired) {
-                                    countdownDisplay.classList.add('hidden');
-                                    countdownExpired.classList.remove('hidden');
-                                }
-                                return;
-                            }
-                            
-                            // Show countdown display
-                            if (countdownDisplay) {
-                                countdownDisplay.classList.remove('hidden');
-                            }
-                            
-                            // Helper function for padding numbers
-                            function padNumber(num: number): string {
-                                return num < 10 ? '0' + num : num.toString();
-                            }
-                            
-                            // Update DOM elements with leading zeros
-                            if (daysElement) daysElement.textContent = padNumber(days);
-                            if (hoursElement) hoursElement.textContent = padNumber(hours);
-                            if (minutesElement) minutesElement.textContent = padNumber(minutes);
-                            if (secondsElement) secondsElement.textContent = padNumber(seconds);
-                            
-                            // Add animation effect
-                            const elements = [daysElement, hoursElement, minutesElement, secondsElement];
-                            elements.forEach(el => {
-                                if (el) {
-                                    el.classList.add('countdown-pulse');
-                                    setTimeout(() => {
-                                        el.classList.remove('countdown-pulse');
-                                    }, 500);
-                                }
-                            });
-                        }
                         
                         // Calculate and update countdown based on end date
                         function updateCountdown(endDate: Date): void {
@@ -306,7 +293,32 @@ import AppLayout from "../../layout/app-layout.astro";
                             const seconds = Math.floor((timeRemaining % (1000 * 60)) / 1000);
                             
                             // Update with calculated values
-                            updateCountdownWithValues(days, hours, minutes, seconds);
+                            updateCountdownDisplay(days, hours, minutes, seconds);
+                        }
+                        
+                        // Helper function to update countdown display
+                        function updateCountdownDisplay(days: number, hours: number, minutes: number, seconds: number): void {
+                            // Helper function for padding numbers
+                            function padNumber(num: number): string {
+                                return num < 10 ? '0' + num : num.toString();
+                            }
+                            
+                            // Update DOM elements with leading zeros
+                            if (daysElement) daysElement.textContent = padNumber(days);
+                            if (hoursElement) hoursElement.textContent = padNumber(hours);
+                            if (minutesElement) minutesElement.textContent = padNumber(minutes);
+                            if (secondsElement) secondsElement.textContent = padNumber(seconds);
+                            
+                            // Add animation effect
+                            const elements = [daysElement, hoursElement, minutesElement, secondsElement];
+                            elements.forEach(el => {
+                                if (el) {
+                                    el.classList.add('countdown-pulse');
+                                    setTimeout(() => {
+                                        el.classList.remove('countdown-pulse');
+                                    }, 500);
+                                }
+                            });
                         }
                     });
                 </script>

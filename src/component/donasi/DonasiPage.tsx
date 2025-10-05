@@ -43,6 +43,12 @@ const DonasiPage = () => {
     <>
       {/* Hero Section dengan animasi floating */}
       <section className="relative bg-gradient-to-br from-[#406386] via-[#2d4a67] to-[#1a3447] py-12 sm:py-16 lg:py-20 overflow-hidden">
+        {/* Background Image */}
+        <div 
+          className="absolute inset-0 bg-center bg-no-repeat bg-cover opacity-20" 
+          style={{ backgroundImage: "url('/assets/image/hero/hero-donasi.jpg')" }}
+        ></div>
+        
         {/* Floating Elements */}
         <div className="absolute inset-0 overflow-hidden">
           <div className="absolute w-12 h-12 rounded-full left-6 top-12 animate-bounce bg-white/10 sm:w-16 sm:h-16 sm:left-8 sm:top-16 lg:w-20 lg:h-20 lg:left-10 lg:top-20" style={{ animationDelay: '0s', animationDuration: '3s' }}></div>
