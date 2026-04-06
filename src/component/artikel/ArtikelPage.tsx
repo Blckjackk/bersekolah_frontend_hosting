@@ -1,10 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { ArtikelService } from "../../lib/artikel-service";
-import {
-  Card,
-  Image
-} from "@heroui/react";
+import { Card, Image } from "@heroui/react";
 import { Button } from "@/components/ui/button";
 
 interface Article {
@@ -38,17 +35,17 @@ const ArtikelPage = () => {
       .then((data) => {
         console.log("API Response:", data);
         setDebug(data);
-        
+
         if (Array.isArray(data.data)) {
           // Log the first article to inspect its structure
           if (data.data.length > 0) {
             console.log("First article structure:", data.data[0]);
           }
-          
+
           setLatestArticles(data.data);
         }
       })
-      .catch(error => {
+      .catch((error) => {
         console.error("Error fetching articles:", error);
       });
   }, []);
@@ -60,19 +57,21 @@ const ArtikelPage = () => {
     if (cat && cat !== "Semua") {
       url += `&category=${encodeURIComponent(cat)}`;
     }
-    
+
     try {
       const res = await fetch(url);
       const data = await res.json();
       console.log("Category API Response:", data);
-      
+
       if (Array.isArray(data.data)) {
         if (pageNum === 1) {
           setCategoryArticles(data.data);
         } else {
-          setCategoryArticles(prev => [...prev, ...data.data]);
+          setCategoryArticles((prev) => [...prev, ...data.data]);
         }
-        setCatHasMore(data.meta && data.meta.current_page < data.meta.last_page);
+        setCatHasMore(
+          data.meta && data.meta.current_page < data.meta.last_page,
+        );
       } else {
         setCatHasMore(false);
       }
@@ -108,10 +107,12 @@ const ArtikelPage = () => {
     return date.toLocaleDateString("id-ID", options);
   };
 
-  const filteredCategoryArticles = categoryArticles.filter(article => {
+  const filteredCategoryArticles = categoryArticles.filter((article) => {
     if (category === "Semua") return true;
-    if (category === "Berita") return article.category && article.category.toLowerCase() === "news";
-    if (category === "Kegiatan") return article.category && article.category.toLowerCase() !== "news";
+    if (category === "Berita")
+      return article.category && article.category.toLowerCase() === "news";
+    if (category === "Kegiatan")
+      return article.category && article.category.toLowerCase() !== "news";
     return true;
   });
 
@@ -119,8 +120,10 @@ const ArtikelPage = () => {
   useEffect(() => {
     if (latestArticles.length > 0) {
       console.log("Article image paths:");
-      latestArticles.forEach(article => {
-        console.log(`- ${article.judul_halaman}: gambar=${article.gambar}, url=${ArtikelService.getImageUrl(article.gambar)}`);
+      latestArticles.forEach((article) => {
+        console.log(
+          `- ${article.judul_halaman}: gambar=${article.gambar}, url=${ArtikelService.getImageUrl(article.gambar)}`,
+        );
       });
     }
   }, [latestArticles]);
@@ -132,7 +135,10 @@ const ArtikelPage = () => {
         <div className="absolute inset-0 bg-gradient-to-br from-slate-900/95 via-[#406386]/90 to-[#406386]/85"></div>
         <div
           className="absolute inset-0 bg-center bg-no-repeat bg-cover opacity-30"
-          style={{ backgroundImage: "url('/assets/image/hero/hero-faq.jpg')" }}
+          style={{
+            backgroundImage:
+              "url('/assets/image/static/hero/image_company_profile_artikel_hero.jpg')",
+          }}
         ></div>
         <div className="container relative z-10 px-4 mx-auto text-center text-white sm:px-6 lg:px-8">
           <div className="max-w-5xl mx-auto">
@@ -143,7 +149,8 @@ const ArtikelPage = () => {
               </span>
             </h1>
             <p className="max-w-4xl mx-auto mb-6 text-base font-light leading-relaxed opacity-90 sm:text-lg md:text-xl lg:text-2xl sm:mb-8">
-              Temukan artikel informatif dan inspiratif seputar pendidikan, beasiswa, dan pengembangan diri.
+              Temukan artikel informatif dan inspiratif seputar pendidikan,
+              beasiswa, dan pengembangan diri.
             </p>
           </div>
         </div>
@@ -158,7 +165,8 @@ const ArtikelPage = () => {
             </h2>
             <div className="w-16 h-1 bg-gradient-to-r from-[#406386] to-blue-400 mx-auto mb-6"></div>
             <p className="max-w-2xl mx-auto text-gray-600">
-              Dapatkan informasi terkini seputar pendidikan dan program beasiswa dari tim Bersekolah
+              Dapatkan informasi terkini seputar pendidikan dan program beasiswa
+              dari tim Bersekolah
             </p>
           </div>
 
@@ -183,9 +191,13 @@ const ArtikelPage = () => {
                 </div>
                 <div className="flex flex-col h-[260px] p-6">
                   <div className="flex items-center mb-3 space-x-2 text-sm text-muted-foreground">
-                    <time className="font-medium">{formatTanggal(article.created_at)}</time>
+                    <time className="font-medium">
+                      {formatTanggal(article.created_at)}
+                    </time>
                     <span>•</span>
-                    <span className="text-[#406386] font-medium">{article.author}</span>
+                    <span className="text-[#406386] font-medium">
+                      {article.author}
+                    </span>
                   </div>
                   <h3 className="font-semibold text-xl leading-tight group-hover:text-[#406386] transition-colors duration-300 line-clamp-2 mb-3">
                     {article.judul_halaman}
@@ -205,7 +217,12 @@ const ArtikelPage = () => {
                         viewBox="0 0 24 24"
                         stroke="currentColor"
                       >
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M9 5l7 7-7 7"
+                        />
                       </svg>
                     </a>
                   </Button>
@@ -228,7 +245,7 @@ const ArtikelPage = () => {
               {CATEGORIES.map((cat, idx) => (
                 <Button
                   key={idx}
-                  className={`bg-white border-2 border-[#406386] text-[#406386] hover:bg-[#406386] hover:text-white transition-all duration-300 ${category === cat ? 'bg-[#406386] text-white' : ''}`}
+                  className={`bg-white border-2 border-[#406386] text-[#406386] hover:bg-[#406386] hover:text-white transition-all duration-300 ${category === cat ? "bg-[#406386] text-white" : ""}`}
                   onClick={() => setCategory(cat)}
                 >
                   {cat}
@@ -258,9 +275,13 @@ const ArtikelPage = () => {
                 </div>
                 <div className="flex flex-col h-[260px] p-6">
                   <div className="flex items-center mb-3 space-x-2 text-sm text-muted-foreground">
-                    <time className="font-medium">{formatTanggal(article.created_at)}</time>
+                    <time className="font-medium">
+                      {formatTanggal(article.created_at)}
+                    </time>
                     <span>•</span>
-                    <span className="text-[#406386] font-medium">{article.author}</span>
+                    <span className="text-[#406386] font-medium">
+                      {article.author}
+                    </span>
                   </div>
                   <h3 className="font-semibold text-xl leading-tight group-hover:text-[#406386] transition-colors duration-300 line-clamp-2 mb-3">
                     {article.judul_halaman}
@@ -280,7 +301,12 @@ const ArtikelPage = () => {
                         viewBox="0 0 24 24"
                         stroke="currentColor"
                       >
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M9 5l7 7-7 7"
+                        />
                       </svg>
                     </a>
                   </Button>

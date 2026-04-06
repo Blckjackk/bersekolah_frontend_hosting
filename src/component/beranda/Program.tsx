@@ -7,7 +7,8 @@ const Program = () => {
       id: 1,
       title: "Program Beasiswa",
       description: "Program dukungan pembinaan bagi pelajar SMP/SMA/SMK sederajat untuk bisa terus bersemangat bersekolah dan mengembangkan diri.",
-      image: "/assets/image/company-profile/program-beasiswa.jpg",
+      image: "/assets/image/static/program/image_program_beasiswa_card.webp",
+      legacyImage: "/assets/image/company-profile/program-beasiswa.jpg",
       icon: <GraduationCap className="w-8 h-8 text-blue-600" />,
       buttonText: "Lihat Detail",
       href: "/company-profile/program"
@@ -16,7 +17,8 @@ const Program = () => {
       id: 2,
       title: "Program Donasi", 
       description: "Setiap donasi yang Anda berikan akan dimanfaatkan untuk menyalakan semangat pendidikan para penerima beasiswa dan pelajar Indonesia.",
-      image: "/assets/image/company-profile/donasi.png",
+      image: "/assets/image/static/program/image_program_donasi_card.webp",
+      legacyImage: "/assets/image/company-profile/donasi.png",
       icon: <Heart className="w-8 h-8 text-red-600" />,
       buttonText: "Donasi Sekarang",
       href: "/company-profile/donasi"
@@ -25,7 +27,8 @@ const Program = () => {
       id: 3,
       title: "Program Mentoring",
       description: "Program pendampingan bagi penerima beasiswa dalam mengembangkan diri dan kompetensi.",
-      image: "/assets/image/company-profile/mentor.png",
+      image: "/assets/image/static/program/image_program_mentoring_card.webp",
+      legacyImage: "/assets/image/company-profile/mentor.png",
       icon: <Users className="w-8 h-8 text-green-600" />,
       buttonText: "Kenali Mentor Kami", 
       href: "/company-profile/tentang#mentor"
@@ -61,6 +64,12 @@ const Program = () => {
                     alt={program.title}
                     className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-105"
                     src={program.image}
+                    onError={(e) => {
+                      const target = e.currentTarget as HTMLImageElement;
+                      if (target.src.indexOf(program.legacyImage) === -1) {
+                        target.src = program.legacyImage;
+                      }
+                    }}
                     width="100%"
                   />
                 </div>

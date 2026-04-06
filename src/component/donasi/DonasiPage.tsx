@@ -1,6 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@heroui/react";
-import { Heart, BookOpen, Users, Award, Star, ArrowRight, Sparkles } from "lucide-react";
+import {
+  Heart,
+  BookOpen,
+  Users,
+  Award,
+  Star,
+  ArrowRight,
+  Sparkles,
+} from "lucide-react";
 
 const DonasiPage = () => {
   const [animatedNumber, setAnimatedNumber] = useState(0);
@@ -8,16 +16,16 @@ const DonasiPage = () => {
 
   useEffect(() => {
     const timer = setInterval(() => {
-      setAnimatedNumber(prev => {
+      setAnimatedNumber((prev) => {
         if (prev < 1250) return prev + 25;
         return 1250;
       });
     }, 50);
-    
+
     const testimonialTimer = setInterval(() => {
-      setCurrentTestimonial(prev => (prev + 1) % 3);
+      setCurrentTestimonial((prev) => (prev + 1) % 3);
     }, 4000);
-    
+
     return () => {
       clearInterval(timer);
       clearInterval(testimonialTimer);
@@ -26,17 +34,34 @@ const DonasiPage = () => {
 
   const handleDonateClick = () => {
     const phoneNumber = "6287775115850";
-    const message = "Halo kak, aku tertarik buat ikut berdonasi di program Beasiswa Bersekolah. Boleh minta info selengkapnya?";
+    const message =
+      "Halo kak, aku tertarik buat ikut berdonasi di program Beasiswa Bersekolah. Boleh minta info selengkapnya?";
     const encodedMessage = encodeURIComponent(message);
     const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
     window.open(whatsappUrl, "_blank");
   };
 
   const stats = [
-    { number: `${animatedNumber}+`, label: "Pelajar Terbantu", icon: <Users className="w-8 h-8" /> },
-    { number: "50+", label: "Sekolah Mitra", icon: <BookOpen className="w-8 h-8" /> },
-    { number: "98%", label: "Tingkat Kelulusan", icon: <Award className="w-8 h-8" /> },
-    { number: "5", label: "Tahun Berpengalaman", icon: <Star className="w-8 h-8" /> }
+    {
+      number: `${animatedNumber}+`,
+      label: "Pelajar Terbantu",
+      icon: <Users className="w-8 h-8" />,
+    },
+    {
+      number: "50+",
+      label: "Sekolah Mitra",
+      icon: <BookOpen className="w-8 h-8" />,
+    },
+    {
+      number: "98%",
+      label: "Tingkat Kelulusan",
+      icon: <Award className="w-8 h-8" />,
+    },
+    {
+      number: "5",
+      label: "Tahun Berpengalaman",
+      icon: <Star className="w-8 h-8" />,
+    },
   ];
 
   return (
@@ -44,17 +69,32 @@ const DonasiPage = () => {
       {/* Hero Section dengan animasi floating */}
       <section className="relative bg-gradient-to-br from-[#406386] via-[#2d4a67] to-[#1a3447] py-12 sm:py-16 lg:py-20 overflow-hidden">
         {/* Background Image */}
-        <div 
-          className="absolute inset-0 bg-center bg-no-repeat bg-cover opacity-20" 
-          style={{ backgroundImage: "url('/assets/image/hero/hero-donasi.jpg')" }}
+        <div
+          className="absolute inset-0 bg-center bg-no-repeat bg-cover opacity-20"
+          style={{
+            backgroundImage:
+              "url('/assets/image/static/hero/image_company_profile_donasi_hero.jpg')",
+          }}
         ></div>
-        
+
         {/* Floating Elements */}
         <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute w-12 h-12 rounded-full left-6 top-12 animate-bounce bg-white/10 sm:w-16 sm:h-16 sm:left-8 sm:top-16 lg:w-20 lg:h-20 lg:left-10 lg:top-20" style={{ animationDelay: '0s', animationDuration: '3s' }}></div>
-          <div className="absolute w-10 h-10 rounded-full right-12 top-24 animate-bounce bg-blue-200/20 sm:w-12 sm:h-12 sm:right-16 sm:top-32 lg:w-16 lg:h-16 lg:right-20 lg:top-40" style={{ animationDelay: '1s', animationDuration: '4s' }}></div>
-          <div className="absolute w-8 h-8 rounded-full bottom-20 left-1/4 animate-bounce bg-white/15 sm:w-10 sm:h-10 sm:bottom-24 lg:w-12 lg:h-12 lg:bottom-32" style={{ animationDelay: '2s', animationDuration: '5s' }}></div>
-          <div className="absolute w-6 h-6 rounded-full top-1/3 right-1/3 animate-bounce bg-blue-100/25 sm:w-8 sm:h-8" style={{ animationDelay: '1.5s', animationDuration: '3.5s' }}></div>
+          <div
+            className="absolute w-12 h-12 rounded-full left-6 top-12 animate-bounce bg-white/10 sm:w-16 sm:h-16 sm:left-8 sm:top-16 lg:w-20 lg:h-20 lg:left-10 lg:top-20"
+            style={{ animationDelay: "0s", animationDuration: "3s" }}
+          ></div>
+          <div
+            className="absolute w-10 h-10 rounded-full right-12 top-24 animate-bounce bg-blue-200/20 sm:w-12 sm:h-12 sm:right-16 sm:top-32 lg:w-16 lg:h-16 lg:right-20 lg:top-40"
+            style={{ animationDelay: "1s", animationDuration: "4s" }}
+          ></div>
+          <div
+            className="absolute w-8 h-8 rounded-full bottom-20 left-1/4 animate-bounce bg-white/15 sm:w-10 sm:h-10 sm:bottom-24 lg:w-12 lg:h-12 lg:bottom-32"
+            style={{ animationDelay: "2s", animationDuration: "5s" }}
+          ></div>
+          <div
+            className="absolute w-6 h-6 rounded-full top-1/3 right-1/3 animate-bounce bg-blue-100/25 sm:w-8 sm:h-8"
+            style={{ animationDelay: "1.5s", animationDuration: "3.5s" }}
+          ></div>
         </div>
 
         <div className="container relative px-4 mx-auto sm:px-6 lg:px-8">
@@ -62,7 +102,9 @@ const DonasiPage = () => {
             {/* Badge */}
             <div className="inline-flex items-center gap-2 px-3 py-1 mb-4 rounded-full backdrop-blur-sm bg-white/20 sm:px-4 sm:py-2 sm:mb-6">
               <Sparkles className="w-3 h-3 text-blue-200 sm:w-4 sm:h-4" />
-              <span className="text-xs font-medium text-white sm:text-sm">Mengubah Hidup Melalui Pendidikan</span>
+              <span className="text-xs font-medium text-white sm:text-sm">
+                Mengubah Hidup Melalui Pendidikan
+              </span>
             </div>
 
             <h1 className="mb-4 text-2xl font-bold leading-tight text-white sm:text-3xl lg:text-4xl xl:text-5xl sm:mb-6">
@@ -71,10 +113,11 @@ const DonasiPage = () => {
                 Anak Indonesia
               </span>
             </h1>
-            
+
             <p className="max-w-3xl px-2 mx-auto mb-6 text-sm leading-relaxed text-blue-100 sm:text-base lg:text-lg xl:text-xl sm:mb-8">
-              Setiap kontribusi Anda adalah investasi untuk masa depan Indonesia yang lebih cerah. 
-              Mari bersama membuka pintu kesempatan bagi generasi penerus bangsa.
+              Setiap kontribusi Anda adalah investasi untuk masa depan Indonesia
+              yang lebih cerah. Mari bersama membuka pintu kesempatan bagi
+              generasi penerus bangsa.
             </p>
 
             {/* CTA Button dengan efek hover menarik */}
@@ -90,7 +133,6 @@ const DonasiPage = () => {
                 </span>
               </button>
             </div>
-
           </div>
         </div>
       </section>
@@ -126,30 +168,45 @@ const DonasiPage = () => {
               Dampak Nyata Donasi Anda
             </h2>
             <div className="w-12 h-1 bg-[#406386] mx-auto mb-6 rounded-full sm:w-16 sm:mb-8 lg:w-20"></div>
-            
+
             <div className="grid gap-4 sm:gap-6 lg:gap-8 md:grid-cols-3">
               <div className="p-4 transition-shadow duration-300 bg-white shadow-lg rounded-xl sm:p-6 sm:rounded-2xl hover:shadow-xl">
                 <div className="w-12 h-12 bg-[#406386] rounded-full flex items-center justify-center mx-auto mb-3 sm:w-14 sm:h-14 sm:mb-4 lg:w-16 lg:h-16">
                   <BookOpen className="w-6 h-6 text-white sm:w-7 sm:h-7 lg:w-8 lg:h-8" />
                 </div>
-                <h3 className="text-base font-semibold text-[#406386] mb-2 sm:text-lg lg:text-xl sm:mb-3">Akses Pendidikan</h3>
-                <p className="text-xs text-gray-600 sm:text-sm lg:text-base">Memberikan kesempatan belajar bagi anak-anak kurang mampu untuk meraih pendidikan berkualitas</p>
+                <h3 className="text-base font-semibold text-[#406386] mb-2 sm:text-lg lg:text-xl sm:mb-3">
+                  Akses Pendidikan
+                </h3>
+                <p className="text-xs text-gray-600 sm:text-sm lg:text-base">
+                  Memberikan kesempatan belajar bagi anak-anak kurang mampu
+                  untuk meraih pendidikan berkualitas
+                </p>
               </div>
-              
+
               <div className="p-4 transition-shadow duration-300 bg-white shadow-lg rounded-xl sm:p-6 sm:rounded-2xl hover:shadow-xl">
                 <div className="w-12 h-12 bg-[#406386] rounded-full flex items-center justify-center mx-auto mb-3 sm:w-14 sm:h-14 sm:mb-4 lg:w-16 lg:h-16">
                   <Users className="w-6 h-6 text-white sm:w-7 sm:h-7 lg:w-8 lg:h-8" />
                 </div>
-                <h3 className="text-base font-semibold text-[#406386] mb-2 sm:text-lg lg:text-xl sm:mb-3">Masa Depan Cerah</h3>
-                <p className="text-xs text-gray-600 sm:text-sm lg:text-base">Membantu membangun generasi yang kompeten dan siap menghadapi tantangan masa depan</p>
+                <h3 className="text-base font-semibold text-[#406386] mb-2 sm:text-lg lg:text-xl sm:mb-3">
+                  Masa Depan Cerah
+                </h3>
+                <p className="text-xs text-gray-600 sm:text-sm lg:text-base">
+                  Membantu membangun generasi yang kompeten dan siap menghadapi
+                  tantangan masa depan
+                </p>
               </div>
-              
+
               <div className="p-4 transition-shadow duration-300 bg-white shadow-lg rounded-xl sm:p-6 sm:rounded-2xl hover:shadow-xl">
                 <div className="w-12 h-12 bg-[#406386] rounded-full flex items-center justify-center mx-auto mb-3 sm:w-14 sm:h-14 sm:mb-4 lg:w-16 lg:h-16">
                   <Heart className="w-6 h-6 text-white sm:w-7 sm:h-7 lg:w-8 lg:h-8" />
                 </div>
-                <h3 className="text-base font-semibold text-[#406386] mb-2 sm:text-lg lg:text-xl sm:mb-3">Perubahan Hidup</h3>
-                <p className="text-xs text-gray-600 sm:text-sm lg:text-base">Mengubah kehidupan keluarga dan menciptakan siklus positif di masyarakat</p>
+                <h3 className="text-base font-semibold text-[#406386] mb-2 sm:text-lg lg:text-xl sm:mb-3">
+                  Perubahan Hidup
+                </h3>
+                <p className="text-xs text-gray-600 sm:text-sm lg:text-base">
+                  Mengubah kehidupan keluarga dan menciptakan siklus positif di
+                  masyarakat
+                </p>
               </div>
             </div>
           </div>
@@ -162,16 +219,19 @@ const DonasiPage = () => {
           <div className="max-w-4xl mx-auto text-center">
             <div className="inline-flex items-center gap-2 px-3 py-1 mb-4 bg-blue-100 rounded-full sm:px-4 sm:py-2 sm:mb-6">
               <Star className="w-3 h-3 text-blue-600 sm:w-4 sm:h-4" />
-              <span className="text-xs font-medium text-blue-800 sm:text-sm">Saatnya Berbagi Kebaikan</span>
+              <span className="text-xs font-medium text-blue-800 sm:text-sm">
+                Saatnya Berbagi Kebaikan
+              </span>
             </div>
-            
+
             <h2 className="text-2xl font-bold text-[#406386] mb-4 sm:text-3xl lg:text-4xl xl:text-5xl sm:mb-6">
               Jadilah Bagian dari Perubahan
             </h2>
-            
+
             <p className="mb-6 text-sm leading-relaxed text-gray-700 sm:text-base lg:text-lg xl:text-xl sm:mb-8">
-              Setiap rupiah yang Anda berikan memiliki kekuatan untuk mengubah hidup seseorang. 
-              Mari bersama-sama membangun Indonesia melalui pendidikan.
+              Setiap rupiah yang Anda berikan memiliki kekuatan untuk mengubah
+              hidup seseorang. Mari bersama-sama membangun Indonesia melalui
+              pendidikan.
             </p>
 
             <div className="space-y-4">
@@ -185,7 +245,7 @@ const DonasiPage = () => {
                   <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1 sm:w-5 sm:h-5 lg:w-6 lg:h-6" />
                 </span>
               </button>
-              </div>
+            </div>
           </div>
         </div>
       </section>
