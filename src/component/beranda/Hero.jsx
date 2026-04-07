@@ -26,7 +26,7 @@ const Hero = () => {
               href="/company-profile/donasi"
               className="text-[#406386] font-medium"
             >
-              Berikan Donasi!
+              klik di sini untuk berpartisipasi
             </Link>
           </Button>
         </div>

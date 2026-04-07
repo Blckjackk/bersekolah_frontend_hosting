@@ -1,39 +1,48 @@
-import { Card, CardHeader, CardBody, CardFooter, Image, Button } from "@heroui/react"
-import { GraduationCap, Heart, Users } from "lucide-react"
+import {
+  Card,
+  CardHeader,
+  CardBody,
+  CardFooter,
+  Button,
+} from "@heroui/react";
+import { GraduationCap, Heart, Users } from "lucide-react";
 
 const Program = () => {
   const programs = [
     {
       id: 1,
       title: "Program Beasiswa",
-      description: "Program dukungan pembinaan bagi pelajar SMP/SMA/SMK sederajat untuk bisa terus bersemangat bersekolah dan mengembangkan diri.",
+      description:
+        "Program dukungan pembinaan bagi pelajar SMP/SMA/SMK sederajat untuk bisa terus bersemangat bersekolah dan mengembangkan diri.",
       image: "/assets/image/static/program/image_program_beasiswa_card.webp",
       legacyImage: "/assets/image/company-profile/program-beasiswa.jpg",
       icon: <GraduationCap className="w-8 h-8 text-blue-600" />,
       buttonText: "Lihat Detail",
-      href: "/company-profile/program"
+      href: "/company-profile/program",
     },
     {
       id: 2,
-      title: "Program Donasi", 
-      description: "Setiap donasi yang Anda berikan akan dimanfaatkan untuk menyalakan semangat pendidikan para penerima beasiswa dan pelajar Indonesia.",
+      title: "Program Donasi",
+      description:
+        "Setiap donasi yang Anda berikan akan dimanfaatkan untuk menyalakan semangat pendidikan para penerima beasiswa dan pelajar Indonesia.",
       image: "/assets/image/static/program/image_program_donasi_card.webp",
       legacyImage: "/assets/image/company-profile/donasi.png",
       icon: <Heart className="w-8 h-8 text-red-600" />,
       buttonText: "Donasi Sekarang",
-      href: "/company-profile/donasi"
+      href: "/company-profile/donasi",
     },
     {
       id: 3,
       title: "Program Mentoring",
-      description: "Program pendampingan bagi penerima beasiswa dalam mengembangkan diri dan kompetensi.",
+      description:
+        "Program pendampingan bagi penerima beasiswa dalam mengembangkan diri dan kompetensi.",
       image: "/assets/image/static/program/image_program_mentoring_card.webp",
       legacyImage: "/assets/image/company-profile/mentor.png",
       icon: <Users className="w-8 h-8 text-green-600" />,
-      buttonText: "Kenali Mentor Kami", 
-      href: "/company-profile/tentang#mentor"
-    }
-  ]
+      buttonText: "Kenali Mentor Kami",
+      href: "/company-profile/tentang#mentor",
+    },
+  ];
 
   return (
     <section className="px-4 py-12 md:py-16 sm:px-6 lg:px-8">
@@ -45,22 +54,23 @@ const Program = () => {
           </h2>
           <div className="w-20 h-1 mx-auto mb-6 bg-teal-400"></div>
           <p className="max-w-2xl mx-auto text-gray-600">
-            Berbagai program yang kami tawarkan untuk mendukung pendidikan dan pengembangan diri pelajar Indonesia
+            Berbagai program yang kami tawarkan untuk mendukung pendidikan dan
+            pengembangan diri para penerima manfaat program ini
           </p>
         </div>
 
         {/* Programs Grid */}
         <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
           {programs.map((program) => (
-            <Card 
-              key={program.id} 
+            <Card
+              key={program.id}
               className="transition-all duration-300 group hover:scale-105 border border-gray-200 hover:border-[#406386] hover:shadow-lg"
               isPressable
             >
-            {/* Card Image */}
+              {/* Card Image */}
               <CardHeader className="p-0 bg-white">
                 <div className="relative w-full overflow-hidden rounded-t-lg h-52">
-                  <Image
+                  <img
                     alt={program.title}
                     className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-105"
                     src={program.image}
@@ -70,18 +80,14 @@ const Program = () => {
                         target.src = program.legacyImage;
                       }
                     }}
-                    width="100%"
                   />
                 </div>
               </CardHeader>
 
-
               {/* Card Content */}
               <CardBody className="p-6">
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="text-[#406386]">
-                    {program.icon}
-                  </div>
+                  <div className="text-[#406386]">{program.icon}</div>
                   <h3 className="text-xl font-bold text-[#406386]">
                     {program.title}
                   </h3>
@@ -93,7 +99,7 @@ const Program = () => {
 
               {/* Card Footer */}
               <CardFooter className="p-6 pt-0">
-                <Button 
+                <Button
                   className="w-full bg-[#406386] hover:bg-[#345064] text-white transition-colors duration-300"
                   as="a"
                   href={program.href}
@@ -104,10 +110,9 @@ const Program = () => {
             </Card>
           ))}
         </div>
-
       </div>
     </section>
-  )
-}
+  );
+};
 
-export default Program
+export default Program;

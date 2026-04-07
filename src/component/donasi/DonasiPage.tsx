@@ -128,7 +128,7 @@ const DonasiPage = () => {
               >
                 <span className="flex items-center gap-2 sm:gap-3">
                   <Heart className="w-4 h-4 text-red-500 group-hover:animate-pulse sm:w-5 sm:h-5 lg:w-6 lg:h-6" />
-                  Mulai Berdonasi Sekarang
+                  Chat Admin Bersekolah untuk menyampaikan berpartisipasi Anda!
                   <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1 sm:w-5 sm:h-5" />
                 </span>
               </button>
