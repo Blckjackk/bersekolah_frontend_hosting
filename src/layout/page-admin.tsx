@@ -11,7 +11,10 @@ import { Separator } from "../components/ui/separator";
 import { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { CustomSidebarTrigger } from "../component/layout/custom-sidebar-trigger";
-import { SidebarProvider as CustomSidebarProvider, useSidebar } from "../contexts/SidebarContext";
+import {
+  SidebarProvider as CustomSidebarProvider,
+  useSidebar,
+} from "../contexts/SidebarContext";
 import { getEnvironmentUrls } from "@/lib/utils/url-helper";
 
 import type { ReactNode } from "react";
@@ -69,10 +72,10 @@ function PageContent({ children }: { children: ReactNode }) {
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768);
     };
-    
+
     checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
   // Auth middleware check for admin
@@ -105,18 +108,22 @@ function PageContent({ children }: { children: ReactNode }) {
           }
 
           const serverUser = await meResponse.json();
-          const currentRole = (serverUser?.role || user.role || "").toLowerCase();
+          const currentRole = (
+            serverUser?.role ||
+            user.role ||
+            ""
+          ).toLowerCase();
 
           // Keep local user fresh with server value.
           localStorage.setItem(
             "bersekolah_user",
-            JSON.stringify({ ...user, ...serverUser, role: currentRole })
+            JSON.stringify({ ...user, ...serverUser, role: currentRole }),
           );
 
           const allowedRoles = ["admin", "superadmin"];
           if (!allowedRoles.includes(currentRole)) {
             console.log(
-              `❌ User role "${currentRole}" not authorized. Required: admin/superadmin`
+              `❌ User role "${currentRole}" not authorized. Required: admin/superadmin`,
             );
 
             document.body.innerHTML = `
@@ -205,7 +212,12 @@ function PageContent({ children }: { children: ReactNode }) {
             return;
           }
 
-          console.log("✅ Admin authorized:", serverUser?.name || user.name, "Role:", currentRole);
+          console.log(
+            "✅ Admin authorized:",
+            serverUser?.name || user.name,
+            "Role:",
+            currentRole,
+          );
           setIsAuthorized(true);
           setIsAuthChecking(false);
         } catch (error) {
@@ -280,27 +292,25 @@ function PageContent({ children }: { children: ReactNode }) {
     <div className="min-h-screen">
       {/* Mobile overlay */}
       {isMobile && isOpen && (
-        <div 
-          className="fixed inset-0 bg-black/50 z-20"
+        <div
+          className="fixed inset-0 z-20 bg-black/50"
           onClick={() => {
             // Close sidebar on mobile when clicking overlay
             toggle();
           }}
         />
       )}
-      
+
       {/* Sidebar - Fixed position */}
       <AppSidebar />
-      
+
       {/* Main content area - Adjust margin for sidebar like beswan */}
-      <div 
+      <div
         className={`transition-all duration-300 ease-in-out ${
-          isMobile 
-            ? "ml-0" 
-            : (isOpen ? "ml-64" : "ml-16")  // Same as beswan - adjust based on sidebar state
+          isMobile ? "ml-0" : isOpen ? "ml-64" : "ml-16" // Same as beswan - adjust based on sidebar state
         }`}
       >
-        <header className="flex h-16 shrink-0 items-center gap-2 border-b bg-background px-4 sticky top-0 z-10">
+        <header className="sticky top-0 z-10 flex items-center h-16 gap-2 px-4 border-b shrink-0 bg-background">
           <div className="flex items-center gap-2">
             <CustomSidebarTrigger className="-ml-1" />
             <Separator orientation="vertical" className="h-4 mr-2" />
@@ -335,9 +345,7 @@ function PageContent({ children }: { children: ReactNode }) {
             </Breadcrumb>
           </div>
         </header>
-        <main className="p-4 min-h-[calc(100vh-4rem)]">
-          {children}
-        </main>
+        <main className="p-4 min-h-[calc(100vh-4rem)]">{children}</main>
       </div>
     </div>
   );
