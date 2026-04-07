@@ -1,10 +1,4 @@
-import {
-  Card,
-  CardHeader,
-  CardBody,
-  CardFooter,
-  Button,
-} from "@heroui/react";
+import { Card, CardHeader, CardBody, CardFooter, Button } from "@heroui/react";
 import { GraduationCap, Heart, Users } from "lucide-react";
 
 const Program = () => {

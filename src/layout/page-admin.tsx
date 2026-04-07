@@ -12,6 +12,7 @@ import { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { CustomSidebarTrigger } from "../component/layout/custom-sidebar-trigger";
 import { SidebarProvider as CustomSidebarProvider, useSidebar } from "../contexts/SidebarContext";
+import { getEnvironmentUrls } from "@/lib/utils/url-helper";
 
 import type { ReactNode } from "react";
 
@@ -87,103 +88,136 @@ function PageContent({ children }: { children: ReactNode }) {
         return;
       }
 
-      const { user } = authData;      // Check if user role is 'admin' or 'superadmin'
-      const allowedRoles = ["admin", "superadmin"];
-      if (!allowedRoles.includes(user.role)) {
-        console.log(
-          `❌ User role "${user.role}" not authorized. Required: admin/superadmin`
-        );
-        
-        // Simple unauthorized page for non-admin users
-        document.body.innerHTML = `
-          <div style="
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
-            font-family: system-ui, -apple-system, sans-serif;
-          ">
-            <div style="
-              background: white;
-              padding: 2rem;
-              border-radius: 0.5rem;
-              box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-              text-align: center;
-              max-width: 400px;
-              margin: 1rem;
-            ">
+      const verifyAuthWithServer = async () => {
+        const { user, token } = authData;
+        const { apiUrl } = getEnvironmentUrls();
+
+        try {
+          const meResponse = await fetch(`${apiUrl}/me`, {
+            headers: {
+              Accept: "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          });
+
+          if (!meResponse.ok) {
+            throw new Error("Token invalid");
+          }
+
+          const serverUser = await meResponse.json();
+          const currentRole = (serverUser?.role || user.role || "").toLowerCase();
+
+          // Keep local user fresh with server value.
+          localStorage.setItem(
+            "bersekolah_user",
+            JSON.stringify({ ...user, ...serverUser, role: currentRole })
+          );
+
+          const allowedRoles = ["admin", "superadmin"];
+          if (!allowedRoles.includes(currentRole)) {
+            console.log(
+              `❌ User role "${currentRole}" not authorized. Required: admin/superadmin`
+            );
+
+            document.body.innerHTML = `
               <div style="
-                width: 4rem;
-                height: 4rem;
-                background: #fee2e2;
-                border-radius: 50%;
+                min-height: 100vh;
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                margin: 0 auto 1rem;
-                font-size: 1.5rem;
-              ">🚫</div>
-              <h1 style="
-                font-size: 1.5rem;
-                font-weight: bold;
-                color: #1f2937;
-                margin-bottom: 0.5rem;
-              ">Akses Admin Ditolak</h1>
-              <p style="
-                color: #6b7280;
-                margin-bottom: 1.5rem;
-                line-height: 1.5;
+                background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+                font-family: system-ui, -apple-system, sans-serif;
               ">
-                Halaman ini khusus untuk Administrator. 
-                Role Anda saat ini: <strong>${user.role}</strong>
-              </p>
-              <div style="display: flex; gap: 0.5rem; flex-direction: column;">
-                <button 
-                  onclick="window.location.href='/form-pendaftaran'" 
-                  style="
-                    background: #3b82f6;
-                    color: white;
-                    padding: 0.75rem 1.5rem;
-                    border: none;
-                    border-radius: 0.375rem;
-                    font-weight: 500;
-                    cursor: pointer;
-                    width: 100%;
-                  "
-                >
-                  Ke Dashboard User
-                </button>
-                <button 
-                  onclick="
-                    localStorage.removeItem('bersekolah_auth_token');
-                    localStorage.removeItem('bersekolah_user');
-                    localStorage.removeItem('bersekolah_login_time');
-                    window.location.href='/masuk';
-                  " 
-                  style="
-                    background: #dc2626;
-                    color: white;
-                    padding: 0.75rem 1.5rem;
-                    border: none;
-                    border-radius: 0.375rem;
-                    font-weight: 500;
-                    cursor: pointer;
-                    width: 100%;
-                  "
-                >
-                  Logout & Login Ulang
-                </button>
+                <div style="
+                  background: white;
+                  padding: 2rem;
+                  border-radius: 0.5rem;
+                  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+                  text-align: center;
+                  max-width: 400px;
+                  margin: 1rem;
+                ">
+                  <div style="
+                    width: 4rem;
+                    height: 4rem;
+                    background: #fee2e2;
+                    border-radius: 50%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    margin: 0 auto 1rem;
+                    font-size: 1.5rem;
+                  ">🚫</div>
+                  <h1 style="
+                    font-size: 1.5rem;
+                    font-weight: bold;
+                    color: #1f2937;
+                    margin-bottom: 0.5rem;
+                  ">Akses Admin Ditolak</h1>
+                  <p style="
+                    color: #6b7280;
+                    margin-bottom: 1.5rem;
+                    line-height: 1.5;
+                  ">
+                    Halaman ini khusus untuk Administrator.
+                    Role Anda saat ini: <strong>${currentRole}</strong>
+                  </p>
+                  <div style="display: flex; gap: 0.5rem; flex-direction: column;">
+                    <button
+                      onclick="window.location.href='/form-pendaftaran'"
+                      style="
+                        background: #3b82f6;
+                        color: white;
+                        padding: 0.75rem 1.5rem;
+                        border: none;
+                        border-radius: 0.375rem;
+                        font-weight: 500;
+                        cursor: pointer;
+                        width: 100%;
+                      "
+                    >
+                      Ke Dashboard User
+                    </button>
+                    <button
+                      onclick="
+                        localStorage.removeItem('bersekolah_auth_token');
+                        localStorage.removeItem('bersekolah_user');
+                        localStorage.removeItem('bersekolah_login_time');
+                        window.location.href='/masuk';
+                      "
+                      style="
+                        background: #dc2626;
+                        color: white;
+                        padding: 0.75rem 1.5rem;
+                        border: none;
+                        border-radius: 0.375rem;
+                        font-weight: 500;
+                        cursor: pointer;
+                        width: 100%;
+                      "
+                    >
+                      Logout & Login Ulang
+                    </button>
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
-        `;
-        return;
-      }
+            `;
+            return;
+          }
 
-      console.log("✅ Admin authorized:", user.name, "Role:", user.role);
-      setIsAuthorized(true);
-      setIsAuthChecking(false);
+          console.log("✅ Admin authorized:", serverUser?.name || user.name, "Role:", currentRole);
+          setIsAuthorized(true);
+          setIsAuthChecking(false);
+        } catch (error) {
+          console.log("❌ Token admin tidak valid, redirecting to login");
+          localStorage.removeItem("bersekolah_auth_token");
+          localStorage.removeItem("bersekolah_user");
+          localStorage.removeItem("bersekolah_login_time");
+          window.location.href = "/masuk";
+        }
+      };
+
+      verifyAuthWithServer();
     };
 
     // Small delay to prevent flash

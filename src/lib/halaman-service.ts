@@ -1,7 +1,29 @@
-import { z } from 'zod';
-import { getEnvironmentUrls, getArtikelImageUrl } from './utils/url-helper';
+import { z } from "zod";
+import { getEnvironmentUrls, getArtikelImageUrl } from "./utils/url-helper";
 
 const { apiUrl: API_URL } = getEnvironmentUrls();
+
+const getAuthToken = (): string | null => {
+  const rawToken = localStorage.getItem("bersekolah_auth_token");
+  if (!rawToken) return null;
+
+  const token = rawToken.replace(/^"|"$/g, "").trim();
+  if (!token || token === "null" || token === "undefined") return null;
+
+  return token;
+};
+
+const getAuthHeaders = (): HeadersInit => {
+  const token = getAuthToken();
+  return token
+    ? {
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      }
+    : {
+        Accept: "application/json",
+      };
+};
 
 export const HalamanSchema = z.object({
   id: z.number(),
@@ -13,26 +35,30 @@ export const HalamanSchema = z.object({
   status: z.string(),
   user_id: z.number(),
   created_at: z.string().datetime(),
-  updated_at: z.string().datetime()
+  updated_at: z.string().datetime(),
 });
 
 export type Halaman = z.infer<typeof HalamanSchema>;
 
 // Input form schema for creating or updating pages
 export const HalamanFormSchema = z.object({
-  judul_halaman: z.string()
-    .min(5, { message: 'Judul halaman minimal 5 karakter' })
-    .max(255, { message: 'Judul halaman maksimal 255 karakter' }),
-  slug: z.string()
-    .min(3, { message: 'Slug minimal 3 karakter' })
-    .max(255, { message: 'Slug maksimal 255 karakter' })
-    .regex(/^[a-z0-9-]+$/, { message: 'Slug hanya boleh berisi huruf kecil, angka, dan tanda hubung' }),
-  deskripsi: z.string()
-    .min(10, { message: 'Deskripsi minimal 10 karakter' }),
-  category: z.string()
-    .min(3, { message: 'Kategori minimal 3 karakter' })
-    .max(100, { message: 'Kategori maksimal 100 karakter' }),
-  status: z.enum(['draft', 'published', 'archived']),
+  judul_halaman: z
+    .string()
+    .min(5, { message: "Judul halaman minimal 5 karakter" })
+    .max(255, { message: "Judul halaman maksimal 255 karakter" }),
+  slug: z
+    .string()
+    .min(3, { message: "Slug minimal 3 karakter" })
+    .max(255, { message: "Slug maksimal 255 karakter" })
+    .regex(/^[a-z0-9-]+$/, {
+      message: "Slug hanya boleh berisi huruf kecil, angka, dan tanda hubung",
+    }),
+  deskripsi: z.string().min(10, { message: "Deskripsi minimal 10 karakter" }),
+  category: z
+    .string()
+    .min(3, { message: "Kategori minimal 3 karakter" })
+    .max(100, { message: "Kategori maksimal 100 karakter" }),
+  status: z.enum(["draft", "published", "archived"]),
   gambar: z.instanceof(File).optional().nullable(),
 });
 
@@ -45,13 +71,9 @@ export const HalamanService = {
   },
 
   getAllHalaman: async () => {
-    const token = localStorage.getItem('bersekolah_auth_token');
     try {
       const response = await fetch(`${API_URL}/admin-konten`, {
-        headers: {
-          'Accept': 'application/json',
-          'Authorization': `Bearer ${token}`
-        }
+        headers: getAuthHeaders(),
       });
       if (response.ok) {
         const data = await response.json();
@@ -59,29 +81,25 @@ export const HalamanService = {
       } else if (response.status === 401 || response.status === 403) {
         // Fallback ke endpoint public jika tidak authorized
         const publicRes = await fetch(`${API_URL}/konten`, {
-          headers: { 'Accept': 'application/json' }
+          headers: { Accept: "application/json" },
         });
-        if (!publicRes.ok) throw new Error('Failed to fetch halaman (public)');
+        if (!publicRes.ok) throw new Error("Failed to fetch halaman (public)");
         const data = await publicRes.json();
         return data.data || [];
       } else {
-        throw new Error('Failed to fetch halaman');
+        throw new Error("Failed to fetch halaman");
       }
     } catch (error) {
-      console.error('Error fetching halaman:', error);
+      console.error("Error fetching halaman:", error);
       throw error;
     }
   },
 
   // --- Tambahkan fungsi baru untuk fetch all tanpa paginasi ---
   getAllHalamanNoPaginate: async () => {
-    const token = localStorage.getItem('bersekolah_auth_token');
     try {
       const response = await fetch(`${API_URL}/admin-konten-all`, {
-        headers: {
-          'Accept': 'application/json',
-          'Authorization': `Bearer ${token}`
-        }
+        headers: getAuthHeaders(),
       });
       if (response.ok) {
         const data = await response.json();
@@ -89,16 +107,16 @@ export const HalamanService = {
       } else if (response.status === 401 || response.status === 403) {
         // Fallback ke endpoint public jika tidak authorized
         const publicRes = await fetch(`${API_URL}/konten`, {
-          headers: { 'Accept': 'application/json' }
+          headers: { Accept: "application/json" },
         });
-        if (!publicRes.ok) throw new Error('Failed to fetch halaman (public)');
+        if (!publicRes.ok) throw new Error("Failed to fetch halaman (public)");
         const data = await publicRes.json();
         return data.data || [];
       } else {
-        throw new Error('Failed to fetch halaman (all)');
+        throw new Error("Failed to fetch halaman (all)");
       }
     } catch (error) {
-      console.error('Error fetching halaman (all):', error);
+      console.error("Error fetching halaman (all):", error);
       throw error;
     }
   },
@@ -106,18 +124,19 @@ export const HalamanService = {
   getHalamanById: async (id: number) => {
     try {
       const response = await fetch(`${API_URL}/admin-konten/${id}`, {
-        headers: {
-          'Accept': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('bersekolah_auth_token')}`
-        }
+        headers: getAuthHeaders(),
       });
 
-      if (!response.ok) throw new Error('Failed to fetch halaman details');
+      if (response.status === 401) {
+        throw new Error("Unauthenticated. Silakan login ulang.");
+      }
+
+      if (!response.ok) throw new Error("Failed to fetch halaman details");
 
       const data = await response.json();
       return data.data;
     } catch (error) {
-      console.error('Error fetching halaman details:', error);
+      console.error("Error fetching halaman details:", error);
       throw error;
     }
   },
@@ -125,23 +144,24 @@ export const HalamanService = {
   createHalaman: async (formData: FormData) => {
     try {
       const response = await fetch(`${API_URL}/admin-konten`, {
-        method: 'POST',
-        headers: {
-          'Accept': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('bersekolah_auth_token')}`
-        },
-        body: formData
+        method: "POST",
+        headers: getAuthHeaders(),
+        body: formData,
       });
+
+      if (response.status === 401) {
+        throw new Error("Unauthenticated. Silakan login ulang.");
+      }
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to create halaman');
+        throw new Error(errorData.message || "Failed to create halaman");
       }
 
       const data = await response.json();
       return data.data;
     } catch (error) {
-      console.error('Error creating halaman:', error);
+      console.error("Error creating halaman:", error);
       throw error;
     }
   },
@@ -149,77 +169,84 @@ export const HalamanService = {
   updateHalaman: async (id: number, formData: FormData) => {
     try {
       // Add _method field for Laravel to handle PUT request with FormData
-      formData.append('_method', 'PUT');
-      
+      formData.append("_method", "PUT");
+
       const response = await fetch(`${API_URL}/admin-konten/${id}`, {
-        method: 'POST', // Use POST with _method for Laravel
-        headers: {
-          'Accept': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('bersekolah_auth_token')}`
-        },
-        body: formData
+        method: "POST", // Use POST with _method for Laravel
+        headers: getAuthHeaders(),
+        body: formData,
       });
+
+      if (response.status === 401) {
+        throw new Error("Unauthenticated. Silakan login ulang.");
+      }
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to update halaman');
+        throw new Error(errorData.message || "Failed to update halaman");
       }
 
       const data = await response.json();
       return data.data;
     } catch (error) {
-      console.error('Error updating halaman:', error);
+      console.error("Error updating halaman:", error);
       throw error;
     }
   },
 
   deleteHalaman: async (id: number) => {
     try {
+      const formData = new FormData();
+      formData.append("_method", "DELETE");
+
       const response = await fetch(`${API_URL}/admin-konten/${id}`, {
-        method: 'DELETE',
-        headers: {
-          'Accept': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('bersekolah_auth_token')}`
-        }
+        method: "POST",
+        headers: getAuthHeaders(),
+        body: formData,
       });
+
+      if (response.status === 401) {
+        throw new Error("Unauthenticated. Silakan login ulang.");
+      }
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to delete halaman');
+        throw new Error(errorData.message || "Failed to delete halaman");
       }
 
       return true;
     } catch (error) {
-      console.error('Error deleting halaman:', error);
+      console.error("Error deleting halaman:", error);
       throw error;
     }
   },
-  
+
   updateHalamanStatus: async (id: number, status: string) => {
     try {
       const formData = new FormData();
-      formData.append('status', status);
-      formData.append('_method', 'PUT');
-      
+      formData.append("status", status);
+      formData.append("_method", "PUT");
+
       const response = await fetch(`${API_URL}/admin-konten/${id}`, {
-        method: 'POST',
-        headers: {
-          'Accept': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('bersekolah_auth_token')}`
-        },
-        body: formData
+        method: "POST",
+        headers: getAuthHeaders(),
+        body: formData,
       });
+
+      if (response.status === 401) {
+        throw new Error("Unauthenticated. Silakan login ulang.");
+      }
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to update status');
+        throw new Error(errorData.message || "Failed to update status");
       }
 
       const data = await response.json();
       return data.data;
     } catch (error) {
-      console.error('Error updating halaman status:', error);
+      console.error("Error updating halaman status:", error);
       throw error;
     }
-  }
+  },
 };

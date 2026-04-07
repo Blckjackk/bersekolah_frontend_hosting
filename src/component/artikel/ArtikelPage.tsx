@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { ArtikelService } from "../../lib/artikel-service";
 import { Card, Image } from "@heroui/react";
 import { Button } from "@/components/ui/button";
+import { getEnvironmentUrls } from "@/lib/utils/url-helper";
 
 interface Article {
   id: number;
@@ -18,6 +19,7 @@ interface Article {
 const CATEGORIES = ["Semua", "Berita", "Kegiatan"];
 
 const ArtikelPage = () => {
+  const { apiUrl } = getEnvironmentUrls();
   // Artikel Terbaru
   const [latestArticles, setLatestArticles] = useState<Article[]>([]);
   // Kategori Artikel
@@ -30,7 +32,7 @@ const ArtikelPage = () => {
 
   // Fetch 6 artikel terbaru (tanpa filter)
   useEffect(() => {
-    fetch("/api/konten?per_page=6")
+    fetch(`${apiUrl}/konten?per_page=6`)
       .then((res) => res.json())
       .then((data) => {
         console.log("API Response:", data);
@@ -48,12 +50,12 @@ const ArtikelPage = () => {
       .catch((error) => {
         console.error("Error fetching articles:", error);
       });
-  }, []);
+  }, [apiUrl]);
 
   // Fetch kategori artikel (default: semua, bisa filter)
   const fetchCategoryArticles = async (cat: string, pageNum = 1) => {
     setCatLoading(true);
-    let url = `/api/konten?page=${pageNum}&per_page=6`;
+    let url = `${apiUrl}/konten?page=${pageNum}&per_page=6`;
     if (cat && cat !== "Semua") {
       url += `&category=${encodeURIComponent(cat)}`;
     }
