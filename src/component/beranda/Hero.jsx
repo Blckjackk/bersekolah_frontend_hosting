@@ -34,5 +34,5 @@ const Hero = () => {
     </section>
   );
 };
-//asd
+//asd sad
 export default Hero;
