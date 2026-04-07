@@ -3,29 +3,29 @@ name: Deploy ke Hostinger
 on:
   push:
     branches:
-      - main # ganti kalau branch kamu bukan main
+      - main
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Ambil code
-        uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      - name: Setup Node
-        uses: actions/setup-node@v3
+      - name: Setup Node (with cache)
+        uses: actions/setup-node@v4
         with:
           node-version: 18
           cache: "npm"
 
-      - name: Install dependency
-        run: npm install
+      - name: Install dependencies (faster)
+        run: npm ci --prefer-offline --no-audit --progress=false
 
       - name: Build project
         run: npm run build
 
-      - name: Upload ke Hostinger
+      - name: Deploy to Hostinger via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.4
         with:
           server: ${{ secrets.FTP_SERVER }}
@@ -34,3 +34,4 @@ jobs:
           local-dir: dist/
           server-dir: domains/bersekolah.com/public_html/
           dangerous-clean-slate: true
+          log-level: verbose
