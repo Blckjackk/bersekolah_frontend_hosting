@@ -1,20 +1,22 @@
 const API_URL = (() => {
   const envApiUrl = import.meta.env.PUBLIC_API_BASE_URL;
-  if (typeof window !== 'undefined') {
+  if (typeof window !== "undefined") {
     const host = window.location.hostname;
-    const isLocalHost = host === 'localhost' || host === '127.0.0.1';
+    const isLocalHost = host === "localhost" || host === "127.0.0.1";
     if (isLocalHost) {
-      return envApiUrl || 'http://localhost:8000/api';
+      return envApiUrl || "http://localhost:8000/api";
     }
 
-    const envIsLoopback = !!envApiUrl && (envApiUrl.includes('localhost') || envApiUrl.includes('127.0.0.1'));
+    const envIsLoopback =
+      !!envApiUrl &&
+      (envApiUrl.includes("localhost") || envApiUrl.includes("127.0.0.1"));
     if (envApiUrl && !envIsLoopback) {
       return envApiUrl;
     }
-    return 'https://api.bersekolah.com/api';
+    return "https://api.bersekolah.com/api";
   }
 
-  return envApiUrl || 'https://api.bersekolah.com/api';
+  return envApiUrl || "https://api.bersekolah.com/api";
 })();
 
 export interface BeasiswaPeriod {
@@ -26,7 +28,7 @@ export interface BeasiswaPeriod {
   akhir_pendaftaran: string;
   mulai_beasiswa: string;
   akhir_beasiswa: string;
-  status: 'draft' | 'active' | 'closed';
+  status: "draft" | "active" | "closed";
   is_active: boolean;
   applicants_count?: number;
   created_at: string;
@@ -42,7 +44,7 @@ export interface BeasiswaPeriodsResponse {
     per_page: number;
     total: number;
     last_page: number;
-  }
+  };
 }
 
 export interface BeasiswaPeriodResponse {
@@ -59,7 +61,7 @@ export interface BeasiswaPeriodForm {
   akhir_pendaftaran: string;
   mulai_beasiswa: string;
   akhir_beasiswa: string;
-  status: 'draft' | 'active' | 'closed';
+  status: "draft" | "active" | "closed";
   is_active: boolean;
 }
 
@@ -70,142 +72,163 @@ export async function fetchBeasiswaPeriods(params?: {
   per_page?: number;
   page?: number;
 }): Promise<BeasiswaPeriodsResponse> {
-  const token = localStorage.getItem('bersekolah_auth_token');
+  const token = localStorage.getItem("bersekolah_auth_token");
   if (!token) {
-    throw new Error('No authentication token');
+    throw new Error("No authentication token");
   }
 
   // Build query parameters
   const queryParams = new URLSearchParams();
   if (params) {
-    if (params.search) queryParams.append('search', params.search);
-    if (params.status && params.status !== 'all') queryParams.append('status', params.status);
-    if (params.tahun) queryParams.append('tahun', params.tahun.toString());
-    if (params.per_page) queryParams.append('per_page', params.per_page.toString());
-    if (params.page) queryParams.append('page', params.page.toString());
+    if (params.search) queryParams.append("search", params.search);
+    if (params.status && params.status !== "all")
+      queryParams.append("status", params.status);
+    if (params.tahun) queryParams.append("tahun", params.tahun.toString());
+    if (params.per_page)
+      queryParams.append("per_page", params.per_page.toString());
+    if (params.page) queryParams.append("page", params.page.toString());
   }
 
-  const response = await fetch(`${API_URL}/beasiswa-periods?${queryParams.toString()}`, {
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'Accept': 'application/json'
-    }
-  });
+  const response = await fetch(
+    `${API_URL}/beasiswa-periods?${queryParams.toString()}`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: "application/json",
+      },
+    },
+  );
 
   if (!response.ok) {
-    throw new Error('Failed to fetch beasiswa periods');
+    throw new Error("Failed to fetch beasiswa periods");
   }
 
   return await response.json();
 }
 
-export async function fetchBeasiswaPeriod(id: number | string): Promise<BeasiswaPeriodResponse> {
-  const token = localStorage.getItem('bersekolah_auth_token');
+export async function fetchBeasiswaPeriod(
+  id: number | string,
+): Promise<BeasiswaPeriodResponse> {
+  const token = localStorage.getItem("bersekolah_auth_token");
   if (!token) {
-    throw new Error('No authentication token');
+    throw new Error("No authentication token");
   }
 
   const response = await fetch(`${API_URL}/beasiswa-periods/${id}`, {
     headers: {
-      'Authorization': `Bearer ${token}`,
-      'Accept': 'application/json'
-    }
+      Authorization: `Bearer ${token}`,
+      Accept: "application/json",
+    },
   });
 
   if (!response.ok) {
-    throw new Error('Failed to fetch beasiswa period');
+    throw new Error("Failed to fetch beasiswa period");
   }
 
   return await response.json();
 }
 
-export async function createBeasiswaPeriod(data: BeasiswaPeriodForm): Promise<BeasiswaPeriodResponse> {
-  const token = localStorage.getItem('bersekolah_auth_token');
+export async function createBeasiswaPeriod(
+  data: BeasiswaPeriodForm,
+): Promise<BeasiswaPeriodResponse> {
+  const token = localStorage.getItem("bersekolah_auth_token");
   if (!token) {
-    throw new Error('No authentication token');
+    throw new Error("No authentication token");
   }
 
   const response = await fetch(`${API_URL}/beasiswa-periods`, {
-    method: 'POST',
+    method: "POST",
     headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json',
-      'Accept': 'application/json'
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+      Accept: "application/json",
     },
-    body: JSON.stringify(data)
+    body: JSON.stringify(data),
   });
 
   if (!response.ok) {
     const errorData = await response.json();
-    throw new Error(errorData.message || 'Failed to create beasiswa period');
+    throw new Error(errorData.message || "Failed to create beasiswa period");
   }
 
   return await response.json();
 }
 
-export async function updateBeasiswaPeriod(id: number | string, data: BeasiswaPeriodForm): Promise<BeasiswaPeriodResponse> {
-  const token = localStorage.getItem('bersekolah_auth_token');
+export async function updateBeasiswaPeriod(
+  id: number | string,
+  data: BeasiswaPeriodForm,
+): Promise<BeasiswaPeriodResponse> {
+  const token = localStorage.getItem("bersekolah_auth_token");
   if (!token) {
-    throw new Error('No authentication token');
+    throw new Error("No authentication token");
   }
 
   const response = await fetch(`${API_URL}/beasiswa-periods/${id}`, {
-    method: 'PUT',
+    method: "PUT",
     headers: {
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json',
-      'Accept': 'application/json'
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+      Accept: "application/json",
     },
-    body: JSON.stringify(data)
+    body: JSON.stringify(data),
   });
 
   if (!response.ok) {
     const errorData = await response.json();
-    throw new Error(errorData.message || 'Failed to update beasiswa period');
+    throw new Error(errorData.message || "Failed to update beasiswa period");
   }
 
   return await response.json();
 }
 
-export async function deleteBeasiswaPeriod(id: number | string): Promise<{ success: boolean; message: string }> {
-  const token = localStorage.getItem('bersekolah_auth_token');
+export async function deleteBeasiswaPeriod(
+  id: number | string,
+): Promise<{ success: boolean; message: string }> {
+  const token = localStorage.getItem("bersekolah_auth_token");
   if (!token) {
-    throw new Error('No authentication token');
+    throw new Error("No authentication token");
   }
 
   const response = await fetch(`${API_URL}/beasiswa-periods/${id}`, {
-    method: 'DELETE',
+    method: "DELETE",
     headers: {
-      'Authorization': `Bearer ${token}`,
-      'Accept': 'application/json'
-    }
+      Authorization: `Bearer ${token}`,
+      Accept: "application/json",
+    },
   });
 
   if (!response.ok) {
     const errorData = await response.json();
-    throw new Error(errorData.message || 'Failed to delete beasiswa period');
+    throw new Error(errorData.message || "Failed to delete beasiswa period");
   }
 
   return await response.json();
 }
 
-export async function togglePeriodActive(id: number | string): Promise<BeasiswaPeriodResponse> {
-  const token = localStorage.getItem('bersekolah_auth_token');
+export async function togglePeriodActive(
+  id: number | string,
+): Promise<BeasiswaPeriodResponse> {
+  const token = localStorage.getItem("bersekolah_auth_token");
   if (!token) {
-    throw new Error('No authentication token');
+    throw new Error("No authentication token");
   }
 
-  const response = await fetch(`${API_URL}/beasiswa-periods/${id}/toggle-active`, {
-    method: 'PATCH',
-    headers: {
-      'Authorization': `Bearer ${token}`,
-      'Accept': 'application/json'
-    }
-  });
+  const response = await fetch(
+    `${API_URL}/beasiswa-periods/${id}/toggle-active`,
+    {
+      method: "PATCH",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: "application/json",
+      },
+    },
+  );
 
   if (!response.ok) {
     const errorData = await response.json();
-    throw new Error(errorData.message || 'Failed to toggle period activation status');
+    throw new Error(
+      errorData.message || "Failed to toggle period activation status",
+    );
   }
 
   return await response.json();
