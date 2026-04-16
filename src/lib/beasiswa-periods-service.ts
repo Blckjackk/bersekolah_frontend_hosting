@@ -1,4 +1,21 @@
-const API_URL = import.meta.env.PUBLIC_API_BASE_URL || 'http://localhost:8000/api';
+const API_URL = (() => {
+  const envApiUrl = import.meta.env.PUBLIC_API_BASE_URL;
+  if (typeof window !== 'undefined') {
+    const host = window.location.hostname;
+    const isLocalHost = host === 'localhost' || host === '127.0.0.1';
+    if (isLocalHost) {
+      return envApiUrl || 'http://localhost:8000/api';
+    }
+
+    const envIsLoopback = !!envApiUrl && (envApiUrl.includes('localhost') || envApiUrl.includes('127.0.0.1'));
+    if (envApiUrl && !envIsLoopback) {
+      return envApiUrl;
+    }
+    return 'https://api.bersekolah.com/api';
+  }
+
+  return envApiUrl || 'https://api.bersekolah.com/api';
+})();
 
 export interface BeasiswaPeriod {
   id: number;

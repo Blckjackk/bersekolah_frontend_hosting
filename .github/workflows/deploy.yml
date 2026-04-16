@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
 
 jobs:
   deploy:
@@ -23,6 +24,9 @@ jobs:
         run: npm ci --prefer-offline --no-audit --progress=false
 
       - name: Build project
+        env:
+          PUBLIC_API_BASE_URL: ${{ secrets.PUBLIC_API_BASE_URL || 'https://api.bersekolah.com/api' }}
+          PUBLIC_API_BASE_URL_NO_API: ${{ secrets.PUBLIC_API_BASE_URL_NO_API || 'https://api.bersekolah.com' }}
         run: npm run build
 
       - name: Deploy to Hostinger via FTP
@@ -32,6 +36,10 @@ jobs:
           username: ${{ secrets.FTP_USERNAME }}
           password: ${{ secrets.FTP_PASSWORD }}
           local-dir: dist/
-          server-dir: domains/bersekolah.com/public_html/
+          # IMPORTANT:
+          # Most Hostinger FTP users are already chrooted near public web root.
+          # Set `FTP_SERVER_DIR` secret if your account needs a custom directory,
+          # e.g. `domains/bersekolah.com/public_html/`.
+          server-dir: ${{ secrets.FTP_SERVER_DIR || '/public_html/' }}
           dangerous-clean-slate: true
           log-level: verbose

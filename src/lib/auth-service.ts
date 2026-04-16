@@ -2,7 +2,8 @@ class AuthService {
   private baseUrl: string;
 
   constructor() {
-    this.baseUrl = import.meta.env.PUBLIC_API_BASE_URL || 'http://localhost:8000/api';
+    this.baseUrl = import.meta.env.PUBLIC_API_BASE_URL
+      || (import.meta.env.PROD ? 'https://api.bersekolah.com/api' : 'http://localhost:8000/api');
     console.log('AuthService initialized with baseUrl:', this.baseUrl);
   }
 

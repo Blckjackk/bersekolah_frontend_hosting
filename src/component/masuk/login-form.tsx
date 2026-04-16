@@ -64,7 +64,24 @@ export function LoginForm({
     
     // ✅ FIXED: Gunakan URL lengkap API atau fallback ke URL default
     // Pastikan ini sesuai dengan alamat API Laravel Anda
-    const baseURL = import.meta.env.PUBLIC_API_BASE_URL || "http://localhost:8000/api";
+    const baseURL = (() => {
+      const envApiUrl = import.meta.env.PUBLIC_API_BASE_URL;
+      if (typeof window !== "undefined") {
+        const host = window.location.hostname;
+        const isLocalHost = host === "localhost" || host === "127.0.0.1";
+        if (isLocalHost) {
+          return envApiUrl || "http://localhost:8000/api";
+        }
+
+        const envIsLoopback = !!envApiUrl && (envApiUrl.includes("localhost") || envApiUrl.includes("127.0.0.1"));
+        if (envApiUrl && !envIsLoopback) {
+          return envApiUrl;
+        }
+        return "https://api.bersekolah.com/api";
+      }
+
+      return envApiUrl || "https://api.bersekolah.com/api";
+    })();
     console.log("Base URL yang digunakan:", baseURL);
     
     try {
@@ -208,7 +225,9 @@ export function LoginForm({
       // ✅ IMPROVED: Debug lebih detail tentang error
       if (error instanceof TypeError && error.message.includes('fetch')) {
         console.error("Network error:", error.message);
-        setGeneralError("Tidak dapat terhubung ke server API. Pastikan server Laravel Anda berjalan di http://localhost:8000.");
+        setGeneralError(import.meta.env.PROD
+          ? "Tidak dapat terhubung ke server API production. Silakan coba lagi beberapa saat."
+          : "Tidak dapat terhubung ke server API. Pastikan server Laravel Anda berjalan di http://localhost:8000.");
       } else if (error instanceof SyntaxError && error.message.includes('JSON')) {
         console.error("JSON parse error:", error.message);
         setGeneralError("Server mengembalikan data dalam format yang tidak valid. Pastikan API mengembalikan JSON yang valid.");
