@@ -24,6 +24,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { useToast } from "@/hooks/use-toast"
+import KalenderWawancara from "@/component/form-pendaftaran/seleksi/KalenderWawancara"
 
 interface InterviewSchedule {
   status: "waiting" | "scheduled" | "completed" | "canceled"
@@ -441,6 +442,11 @@ export default function JadwalWawancaraPage() {
           </CardContent>
         </Card>
       )}
+
+      {/* Kalender Jadwal Wawancara - Data dari tabel interview_schedules */}
+      <div className="mt-6">
+        <KalenderWawancara />
+      </div>
     </div>
   )
 }

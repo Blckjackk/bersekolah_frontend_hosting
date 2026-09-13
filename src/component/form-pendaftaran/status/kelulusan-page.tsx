@@ -386,7 +386,7 @@ export default function StatusKelulusanPage() {
                     jangan ragu untuk menghubungi tim beasiswa bersekolah. Kami siap membantu Anda! 
                   </p>
                   <Button 
-                    onClick={() => window.open('https://wa.me/6287775115850', '_blank')}
+                    onClick={() => window.open('https://wa.me/6287701102019', '_blank')}
                     className="bg-green-600 hover:bg-green-700"
                     size="sm"
                   >

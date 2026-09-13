@@ -439,7 +439,8 @@ export default function DokumenWajibPage() {
       'identity_proof': '/upload-identitas-diri',
       'photo': '/upload-foto-diri',
       'instagram_follow': '/upload-bukti-follow',
-      'twibbon_post': '/upload-twibon'
+      'twibbon_post': '/upload-twibon',
+      'poster_share': '/upload-bukti-share-poster'
     }
     
     return endpointMap[code] || `/upload-document/${code}`

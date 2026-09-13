@@ -64,8 +64,8 @@ const Footer = () => {
     {
       icon: Phone,
       label: 'Telepon',
-      value: '+6287775115850',
-      href: 'tel:+6287775115850'
+      value: '+6287701102019',
+      href: 'tel:+6287701102019'
     },
     {
       icon: MapPin,

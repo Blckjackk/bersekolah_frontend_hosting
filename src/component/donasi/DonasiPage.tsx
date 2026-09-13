@@ -33,7 +33,7 @@ const DonasiPage = () => {
   }, []);
 
   const handleDonateClick = () => {
-    const phoneNumber = "6287775115850";
+    const phoneNumber = "6287701102019";
     const message =
       "Halo kak, aku tertarik buat ikut berdonasi di program Beasiswa Bersekolah. Boleh minta info selengkapnya?";
     const encodedMessage = encodeURIComponent(message);

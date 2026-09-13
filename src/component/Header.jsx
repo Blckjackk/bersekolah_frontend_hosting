@@ -80,6 +80,7 @@ export default function Header() {
     { name: "Donasi", href: "/company-profile/donasi" },
     { name: "Kontak", href: "/company-profile/kontak" },
     { name: "Artikel", href: "/company-profile/artikel" },
+    { name: "Galeri", href: "/company-profile/galeri" },
   ];
 
   // Initial setup

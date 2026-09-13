@@ -20,6 +20,7 @@ import {
   Target,
   Share2,
   Bell,
+  Image,
   X
 } from "lucide-react"
 
@@ -43,7 +44,8 @@ const getNavData = (currentPath: string, isSuperAdmin: boolean) => {
       icon: GraduationCap,
       isActive: currentPath.includes('/dashboard/pendaftar') || 
                currentPath.includes('/dashboard/seleksi') || 
-               currentPath.includes('/dashboard/periode'),
+               currentPath.includes('/dashboard/periode') ||
+               currentPath.includes('/dashboard/jadwal-wawancara'),
       items: [
         {
           title: "Pendaftar Beasiswa",
@@ -65,6 +67,13 @@ const getNavData = (currentPath: string, isSuperAdmin: boolean) => {
           icon: Calendar,
           disabled: false,
           isActive: currentPath === '/dashboard/periode-beasiswa'
+        },
+        {
+          title: "Jadwal Wawancara",
+          url: "/dashboard/jadwal-wawancara",
+          icon: Calendar,
+          disabled: false,
+          isActive: currentPath === '/dashboard/jadwal-wawancara'
         },
       ],
     },
@@ -123,6 +132,13 @@ const getNavData = (currentPath: string, isSuperAdmin: boolean) => {
           icon: MessageSquare,
           disabled: false,
           isActive: currentPath === '/dashboard/faq'
+        },
+        {
+          title: "Galeri",
+          url: "/dashboard/galeri",
+          icon: Image,
+          disabled: false,
+          isActive: currentPath === '/dashboard/galeri'
         },
       ],
     },

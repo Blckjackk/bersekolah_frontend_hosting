@@ -120,7 +120,7 @@ const KontakPage = () => {
   };
 
   const handleWhatsAppClick = () => {
-    const phoneNumber = "6287775115850";
+    const phoneNumber = "6287701102019";
     const message =
       "Halo kak, saya ada pertanyaan, bolehkah saya meminta informasi lebih lengkap mengenai program Beasiswa Bersekolah?";
     const encodedMessage = encodeURIComponent(message);
