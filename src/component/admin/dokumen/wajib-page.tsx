@@ -348,6 +348,7 @@ export default function AdminDokumenWajibPage() {
       'student_proof': 'Bukti Status Siswa',
       'identity_proof': 'Identitas Diri',
       'photo': 'Foto Diri',
+      'poster_share': 'Bukti Share Poster',
       // Dokumen Sosmed (4-5)
       'instagram_follow': 'Bukti Follow Instagram',
       'twibbon_post': 'Postingan Twibbon',
@@ -378,6 +379,8 @@ export default function AdminDokumenWajibPage() {
       case 'photo':
       case '3':
         return <FileText className="w-4 h-4 text-purple-500" />
+      case 'poster_share':
+        return <FileText className="w-4 h-4 text-orange-500" />
       default:
         return <FileText className="w-4 h-4 text-gray-400" />
     }
@@ -529,6 +532,7 @@ export default function AdminDokumenWajibPage() {
                   <SelectItem value="student_proof">Bukti Status Siswa</SelectItem>
                   <SelectItem value="identity_proof">Identitas Diri</SelectItem>
                   <SelectItem value="photo">Foto Diri</SelectItem>
+                  <SelectItem value="poster_share">Bukti Share Poster</SelectItem>
                 </SelectContent>
               </Select>
             </div>
