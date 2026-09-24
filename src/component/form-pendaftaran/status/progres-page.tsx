@@ -244,7 +244,7 @@ export default function ProgresPage() {
 
       const progressData: ApplicationProgress = {
         overall_progress: overallProgress,
-        submission_deadline: "2025-12-31T23:59:59", // Default deadline
+        submission_deadline: "2026-09-30T23:59:59", // Default deadline
         current_stage: currentStage,
         stages,
         finalized_at: applicationStatus?.finalized_at,

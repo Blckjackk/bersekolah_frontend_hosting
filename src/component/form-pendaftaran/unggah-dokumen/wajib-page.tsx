@@ -970,6 +970,13 @@ export default function DokumenWajibPage() {
                           {doc.uploaded_doc && (
                             <p>Diupload: {doc.uploaded_at}</p>
                           )}
+                          {/* Tampilkan alasan penolakan jika status rejected */}
+                          {doc.uploaded_doc?.status === 'rejected' && doc.uploaded_doc?.keterangan && (
+                            <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded text-red-700">
+                              <p className="font-semibold">Alasan penolakan:</p>
+                              <p>{doc.uploaded_doc.keterangan}</p>
+                            </div>
+                          )}
                         </div>
                         
                         {/* Action Buttons */}
@@ -985,15 +992,23 @@ export default function DokumenWajibPage() {
                                 <Eye className="w-3 h-3 mr-2" />
                                 Lihat
                               </Button>
-                              <Button 
-                                variant="outline" 
-                                size="sm" 
-                                onClick={() => handleUploadClick(doc)}
-                                className="w-full sm:w-auto text-xs"
-                              >
-                                <Upload className="w-3 h-3 mr-2" />
-                                Ganti
-                              </Button>
+                              {/* Hanya tampilkan tombol upload ulang jika status bukan 'verified' */}
+                              {doc.uploaded_doc.status !== 'verified' && (
+                                <Button 
+                                  variant="outline" 
+                                  size="sm" 
+                                  onClick={() => handleUploadClick(doc)}
+                                  disabled={isUploading}
+                                  className={`w-full sm:w-auto text-xs ${
+                                    doc.uploaded_doc.status === 'rejected' 
+                                      ? 'border-red-300 text-red-600 hover:bg-red-50' 
+                                      : ''
+                                  }`}
+                                >
+                                  <Upload className="w-3 h-3 mr-2" />
+                                  {doc.uploaded_doc.status === 'rejected' ? 'Unggah Ulang' : 'Ganti'}
+                                </Button>
+                              )}
                             </div>
                           ) : (
                             <Button 
