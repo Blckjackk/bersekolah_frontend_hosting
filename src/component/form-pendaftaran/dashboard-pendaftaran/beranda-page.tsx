@@ -68,7 +68,7 @@ export default function BerandaPage() {
     statusBerkas: "Memuat...",
     statusWawancara: "Memuat...",
     statusKelulusan: "Memuat...",
-    deadlineDocuments: "30 September 2026"
+    deadlineDocuments: "31 Oktober 2026"
   })
 
   const [isLoading, setIsLoading] = useState(true)
