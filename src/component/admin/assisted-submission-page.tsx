@@ -90,6 +90,7 @@ export default function AssistedSubmissionPage() {
   const [periods, setPeriods] = useState<PeriodItem[]>([]);
   const [selectedPeriodId, setSelectedPeriodId] = useState<string>("");
   const [beswanList, setBeswanList] = useState<BeswanItem[]>([]);
+  const [masterBeswanList, setMasterBeswanList] = useState<BeswanItem[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [search, setSearch] = useState<string>("");
   const [docFilter, setDocFilter] = useState<string>("all"); // all, verified_only, has_verified
@@ -185,9 +186,45 @@ export default function AssistedSubmissionPage() {
 
       const json = await res.json();
       if (json.success) {
-        setBeswanList(json.data || []);
+        const data = json.data || [];
+        setBeswanList(data);
+        if (!querySearch.trim() && docFilter === "all") {
+          setMasterBeswanList(data);
+        } else if (!querySearch.trim() && masterBeswanList.length === 0) {
+          setMasterBeswanList(data);
+        }
+
         if (json.already_applied) {
           setAlreadyAppliedNotice(json.already_applied);
+        } else if (data.length === 0 && querySearch.trim()) {
+          // Fallback cerdas: Cek apakah peserta yang dicari ternyata sudah punya aplikasi di Seleksi Aplikasi
+          try {
+            const checkRes = await fetch(
+              `${getBaseURL()}/admin/applications?period=${targetPeriod}&search=${encodeURIComponent(querySearch.trim())}`,
+              {
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                  Accept: "application/json",
+                },
+              }
+            );
+            if (checkRes.ok) {
+              const checkJson = await checkRes.json();
+              const existingApps = checkJson.data?.data || checkJson.data || [];
+              if (Array.isArray(existingApps) && existingApps.length > 0) {
+                const app = existingApps[0];
+                setAlreadyAppliedNotice({
+                  beswan_id: app.beswan_id || app.beswan?.id || app.id,
+                  name: app.beswan?.user?.name || app.user?.name || querySearch.trim(),
+                  status: app.status,
+                  submission_method: app.submission_method || "self",
+                  application_id: app.id,
+                });
+              }
+            }
+          } catch (checkErr) {
+            console.warn("Could not check existing applications:", checkErr);
+          }
         }
       } else {
         setErrorMessage(json.message || "Gagal memuat peserta");
@@ -312,13 +349,15 @@ export default function AssistedSubmissionPage() {
   };
 
   // Real-time client-side filter
+  const sourceList = masterBeswanList.length > 0 ? masterBeswanList : beswanList;
+
   const filteredBeswanList = useMemo(() => {
-    if (!search.trim()) return beswanList;
+    if (!search.trim()) return sourceList;
 
     const term = search.trim().toLowerCase();
     const cleanIdTerm = term.replace(/^#/, "");
 
-    return beswanList.filter((item) => {
+    return sourceList.filter((item) => {
       const name = (item.user?.name || "").toLowerCase();
       const email = (item.user?.email || "").toLowerCase();
       const phone = (item.user?.phone || "").toLowerCase();
@@ -336,23 +375,24 @@ export default function AssistedSubmissionPage() {
         idStr.includes(cleanIdTerm)
       );
     });
-  }, [beswanList, search]);
+  }, [sourceList, search]);
 
-  // Summary KPI Calculations
+  // Summary KPI Calculations (Selalu merefleksikan total keseluruhan periode, tidak terpengaruh search)
   const metrics = useMemo(() => {
-    const total = beswanList.length;
-    const fullyVerified = beswanList.filter(
+    const listForMetrics = masterBeswanList.length > 0 ? masterBeswanList : beswanList;
+    const total = listForMetrics.length;
+    const fullyVerified = listForMetrics.filter(
       (b) => b.document_summary.verified_count === b.document_summary.total_required
     ).length;
-    const partiallyVerified = beswanList.filter(
+    const partiallyVerified = listForMetrics.filter(
       (b) =>
         b.document_summary.verified_count > 0 &&
         b.document_summary.verified_count < b.document_summary.total_required
     ).length;
-    const zeroVerified = beswanList.filter((b) => b.document_summary.verified_count === 0).length;
+    const zeroVerified = listForMetrics.filter((b) => b.document_summary.verified_count === 0).length;
 
     return { total, fullyVerified, partiallyVerified, zeroVerified };
-  }, [beswanList]);
+  }, [masterBeswanList, beswanList]);
 
   const selectedPeriodObj = periods.find((p) => String(p.id) === selectedPeriodId);
 
