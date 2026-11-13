@@ -182,9 +182,11 @@ interface MediaSosial {
 export default function SeleksiBeasiswaPage() {
   const [applications, setApplications] = useState<BeasiswaApplication[]>([])
   const [statistics, setStatistics] = useState<Statistics | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
+  const [isInitialLoading, setIsInitialLoading] = useState(true)
+  const [isTableLoading, setIsTableLoading] = useState(false)
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [searchTerm, setSearchTerm] = useState("")
+  const [debouncedSearch, setDebouncedSearch] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
   const [periodFilter, setPeriodFilter] = useState("all")
   const [finalizedFilter, setFinalizedFilter] = useState("all")
@@ -237,13 +239,21 @@ export default function SeleksiBeasiswaPage() {
   // Add error state for statistics
   const [statisticsError, setStatisticsError] = useState<string | null>(null)
 
+  // Debounce search input to avoid page reload & excessive server requests
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchTerm.trim())
+    }, 400)
+    return () => clearTimeout(timer)
+  }, [searchTerm])
+
   // Fetch applications data
-  const fetchApplications = useCallback(async (isRefresh = false) => {
+  const fetchApplications = useCallback(async (isRefresh = false, searchOverride?: string) => {
     try {
       if (isRefresh) {
         setIsRefreshing(true)
-      } else {
-        setIsLoading(true)
+      } else if (!isInitialLoading) {
+        setIsTableLoading(true)
       }
 
       const token = localStorage.getItem('bersekolah_auth_token')
@@ -257,10 +267,11 @@ export default function SeleksiBeasiswaPage() {
       }
 
       const baseURL = import.meta.env.PUBLIC_API_BASE_URL
+      const activeSearch = searchOverride !== undefined ? searchOverride : debouncedSearch
       const params = new URLSearchParams({
         page: currentPage.toString(),
         per_page: perPage.toString(),
-        search: searchTerm,
+        search: activeSearch,
         status: statusFilter,
         period: periodFilter,
         ...(finalizedFilter === 'true' && { finalized: 'true' })
@@ -281,9 +292,9 @@ export default function SeleksiBeasiswaPage() {
       console.log('Applications data:', result)
 
       if (result.success) {
-        setApplications(result.data)
-        setTotalPages(result.meta.last_page)
-        setTotalItems(result.meta.total)
+        setApplications(result.data || [])
+        setTotalPages(result.meta?.last_page || 1)
+        setTotalItems(result.meta?.total || 0)
       } else {
         throw new Error(result.message || 'Failed to fetch applications')
       }
@@ -296,10 +307,11 @@ export default function SeleksiBeasiswaPage() {
         variant: "destructive",
       })
     } finally {
-      setIsLoading(false)
+      setIsInitialLoading(false)
+      setIsTableLoading(false)
       setIsRefreshing(false)
     }
-  }, [currentPage, perPage, searchTerm, statusFilter, periodFilter, finalizedFilter, toast])
+  }, [currentPage, perPage, debouncedSearch, statusFilter, periodFilter, finalizedFilter, isInitialLoading, toast])
 
   // Fetch statistics
   const fetchStatistics = async () => {
@@ -618,25 +630,19 @@ export default function SeleksiBeasiswaPage() {
 
   // Effects
   useEffect(() => {
-    fetchApplications()
     fetchStatistics()
     fetchMediaLinks()
   }, [])
 
   useEffect(() => {
-
-    fetchApplications()
-  }, [fetchApplications])
-
-  useEffect(() => {
-    // Reset page when filters change
+    // Reset page to 1 when filters or search change
     setCurrentPage(1)
-  }, [searchTerm, statusFilter, periodFilter, finalizedFilter])
+  }, [debouncedSearch, statusFilter, periodFilter, finalizedFilter])
 
   useEffect(() => {
-    // Fetch applications when filters or pagination change
+    // Fetch applications when filters, search, or pagination change
     fetchApplications()
-  }, [currentPage, perPage, searchTerm, statusFilter, periodFilter, finalizedFilter])
+  }, [currentPage, perPage, debouncedSearch, statusFilter, periodFilter, finalizedFilter])
 
   // ✅ TAMBAHKAN: Helper function untuk validasi URL
   const isValidUrl = (url: string) => {
@@ -649,8 +655,8 @@ export default function SeleksiBeasiswaPage() {
     }
   }
 
-  // Render loading state
-  if (isLoading) {
+  // Render loading state ONLY on initial first load (prevents whole-page unmounting / screen refresh during search)
+  if (isInitialLoading) {
     return (
       <div className="container py-6 mx-auto">
         <div className="flex items-center justify-center min-h-[400px]">
@@ -1068,16 +1074,33 @@ export default function SeleksiBeasiswaPage() {
         <CardContent className="p-4">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
             <div className="space-y-2">
-              <Label htmlFor="search" className="text-sm font-medium">Cari Aplikasi</Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="search" className="text-sm font-medium">Cari Aplikasi</Label>
+                {isTableLoading && (
+                  <span className="flex items-center gap-1 text-[11px] text-blue-600 animate-pulse">
+                    <Loader2 className="w-3 h-3 animate-spin" /> Memfilter...
+                  </span>
+                )}
+              </div>
               <div className="relative">
                 <Search className="absolute w-4 h-4 text-gray-500 transform -translate-y-1/2 left-3 top-1/2" />
                 <Input
                   id="search"
-                  placeholder="Nama, email..."
+                  placeholder="Nama, email, telepon..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 text-sm"
+                  className="pl-10 pr-8 text-sm"
                 />
+                {searchTerm && !isTableLoading && (
+                  <button
+                    type="button"
+                    onClick={() => setSearchTerm("")}
+                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                    title="Hapus pencarian"
+                  >
+                    <XCircle className="w-4 h-4" />
+                  </button>
+                )}
               </div>
             </div>
 
@@ -1161,9 +1184,14 @@ export default function SeleksiBeasiswaPage() {
         </CardHeader>
         <CardContent className="p-0 sm:p-6">
           {/* Mobile View - Cards */}
-          <div className="lg:hidden space-y-4 p-4">
-            {applications.map((app) => (
-              <Card key={app.id} className="border border-gray-200">
+          <div className={`lg:hidden space-y-4 p-4 ${isTableLoading ? "opacity-60" : "transition-opacity"}`}>
+            {applications.length === 0 ? (
+              <div className="text-center py-12 text-muted-foreground">
+                <p>Tidak ada aplikasi yang ditemukan</p>
+              </div>
+            ) : (
+              applications.map((app) => (
+                <Card key={app.id} className="border border-gray-200">
                 <CardContent className="p-4">
                   <div className="space-y-3">
                     <div className="flex items-start justify-between">
@@ -1282,7 +1310,7 @@ export default function SeleksiBeasiswaPage() {
 
           {/* Desktop View - Table */}
           <div className="hidden lg:block overflow-x-auto">
-            <Table>
+            <Table className={isTableLoading ? "opacity-60 transition-opacity" : "transition-opacity"}>
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-12">
@@ -1301,7 +1329,14 @@ export default function SeleksiBeasiswaPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {applications.map((app) => (
+                {applications.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={8} className="text-center py-12 text-muted-foreground">
+                      Tidak ada aplikasi yang ditemukan
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  applications.map((app) => (
                   <TableRow key={app.id}>
                     <TableCell>
                       <Checkbox
