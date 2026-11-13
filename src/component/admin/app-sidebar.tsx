@@ -21,6 +21,7 @@ import {
   Share2,
   Bell,
   Image,
+  UserCheck,
   X
 } from "lucide-react"
 
@@ -45,7 +46,8 @@ const getNavData = (currentPath: string, isSuperAdmin: boolean) => {
       isActive: currentPath.includes('/dashboard/pendaftar') || 
                currentPath.includes('/dashboard/seleksi') || 
                currentPath.includes('/dashboard/periode') ||
-               currentPath.includes('/dashboard/jadwal-wawancara'),
+               currentPath.includes('/dashboard/jadwal-wawancara') ||
+               currentPath.includes('/dashboard/assisted-submission'),
       items: [
         {
           title: "Pendaftar Beasiswa",
@@ -53,6 +55,13 @@ const getNavData = (currentPath: string, isSuperAdmin: boolean) => {
           icon: Users,
           disabled: false,
           isActive: currentPath === '/dashboard/pendaftar-beasiswa'
+        },
+        {
+          title: "Assisted Submission",
+          url: "/dashboard/assisted-submission",
+          icon: UserCheck,
+          disabled: false,
+          isActive: currentPath === '/dashboard/assisted-submission'
         },
         {
           title: "Seleksi Aplikasi",

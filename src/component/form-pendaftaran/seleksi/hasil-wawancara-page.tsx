@@ -1,12 +1,12 @@
 "use client"
 
 import React, { useState, useEffect } from "react"
-import { 
-  CheckCircle2, 
-  XCircle, 
-  AlertCircle, 
-  Clock, 
-  Calendar, 
+import {
+  CheckCircle2,
+  XCircle,
+  AlertCircle,
+  Clock,
+  Calendar,
   Info,
   Trophy,
   Loader2,
@@ -150,9 +150,9 @@ export default function HasilSeleksiPage() {
   }
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('id-ID', { 
-      day: 'numeric', 
-      month: 'long', 
+    return new Date(dateString).toLocaleDateString('id-ID', {
+      day: 'numeric',
+      month: 'long',
       year: 'numeric'
     })
   }
@@ -162,7 +162,7 @@ export default function HasilSeleksiPage() {
 
     switch (applicationStatus.status) {
       case "lolos_berkas":
-        return "Selamat! Anda berhasil lolos tahap seleksi berkas. Silakan menunggu informasi jadwal wawancara yang akan dikirimkan melalui email."
+        return "Selamat! Anda berhasil lolos tahap seleksi berkas. Silakan menunggu informasi informasi berikutnya"
       case "lolos_wawancara":
         return "Selamat! Anda berhasil lolos tahap wawancara. Silakan menunggu pengumuman penerima beasiswa."
       case "diterima":
@@ -235,7 +235,7 @@ export default function HasilSeleksiPage() {
                 <div className="flex-1">
                   <h4 className="font-medium">Bergabung dengan Grup Beasiswa</h4>
                   <p className="text-sm text-muted-foreground mb-3">Bergabunglah dengan grup beasiswa untuk mendapatkan update terbaru</p>
-                  <Button 
+                  <Button
                     className="bg-emerald-600 hover:bg-emerald-700"
                     onClick={() => window.open(mediaSosial.link_grup_beasiswa, '_blank')}
                   >
@@ -314,35 +314,32 @@ export default function HasilSeleksiPage() {
             <CardContent>
               <div className="space-y-6">
                 {/* Status Message */}
-                <div className={`p-4 rounded-lg border ${
-                  applicationStatus?.status === 'diterima' ? 'border-emerald-200 bg-emerald-50' :
+                <div className={`p-4 rounded-lg border ${applicationStatus?.status === 'diterima' ? 'border-emerald-200 bg-emerald-50' :
                   ['lolos_berkas', 'lolos_wawancara'].includes(applicationStatus?.status || '') ? 'border-green-200 bg-green-50' :
-                  applicationStatus?.status === 'ditolak' ? 'border-red-200 bg-red-50' :
-                  'border-blue-200 bg-blue-50'
-                }`}>
+                    applicationStatus?.status === 'ditolak' ? 'border-red-200 bg-red-50' :
+                      'border-blue-200 bg-blue-50'
+                  }`}>
                   <div className="flex items-start gap-3">
                     {applicationStatus?.status === 'diterima' ? <Trophy className="w-8 h-8 text-emerald-600" /> :
-                     ['lolos_berkas', 'lolos_wawancara'].includes(applicationStatus?.status || '') ? <CheckCircle2 className="w-8 h-8 text-green-600" /> :
-                     applicationStatus?.status === 'ditolak' ? <XCircle className="w-8 h-8 text-red-600" /> :
-                     <Clock className="w-8 h-8 text-blue-600" />}
+                      ['lolos_berkas', 'lolos_wawancara'].includes(applicationStatus?.status || '') ? <CheckCircle2 className="w-8 h-8 text-green-600" /> :
+                        applicationStatus?.status === 'ditolak' ? <XCircle className="w-8 h-8 text-red-600" /> :
+                          <Clock className="w-8 h-8 text-blue-600" />}
                     <div>
-                      <h3 className={`text-lg font-medium ${
-                        applicationStatus?.status === 'diterima' ? 'text-emerald-800' :
+                      <h3 className={`text-lg font-medium ${applicationStatus?.status === 'diterima' ? 'text-emerald-800' :
                         ['lolos_berkas', 'lolos_wawancara'].includes(applicationStatus?.status || '') ? 'text-green-800' :
-                        applicationStatus?.status === 'ditolak' ? 'text-red-800' :
-                        'text-blue-800'
-                      }`}>
+                          applicationStatus?.status === 'ditolak' ? 'text-red-800' :
+                            'text-blue-800'
+                        }`}>
                         {applicationStatus?.status === 'diterima' ? 'Selamat!' :
-                         ['lolos_berkas', 'lolos_wawancara'].includes(applicationStatus?.status || '') ? 'Selamat!' :
-                         applicationStatus?.status === 'ditolak' ? 'Mohon Maaf' :
-                         'Informasi'}
+                          ['lolos_berkas', 'lolos_wawancara'].includes(applicationStatus?.status || '') ? 'Selamat!' :
+                            applicationStatus?.status === 'ditolak' ? 'Mohon Maaf' :
+                              'Informasi'}
                       </h3>
-                      <p className={`${
-                        applicationStatus?.status === 'diterima' ? 'text-emerald-700' :
+                      <p className={`${applicationStatus?.status === 'diterima' ? 'text-emerald-700' :
                         ['lolos_berkas', 'lolos_wawancara'].includes(applicationStatus?.status || '') ? 'text-green-700' :
-                        applicationStatus?.status === 'ditolak' ? 'text-red-700' :
-                        'text-blue-700'
-                      }`}>
+                          applicationStatus?.status === 'ditolak' ? 'text-red-700' :
+                            'text-blue-700'
+                        }`}>
                         {getStatusMessage()}
                       </p>
                     </div>

@@ -93,6 +93,13 @@ interface BeasiswaApplication {
     id: number;
     name: string;
   };
+  submission_method?: 'self' | 'admin_assisted';
+  submitted_by_admin?: {
+    id: number;
+    name: string;
+  } | null;
+  is_data_complete?: boolean;
+  admin_submission_note?: string | null;
   verification_progress: number;
   has_complete_documents: boolean;
   created_at: string;
@@ -1167,7 +1174,14 @@ export default function SeleksiBeasiswaPage() {
                           className="mt-1"
                         />
                         <div className="flex-1 min-w-0">
-                          <h3 className="font-semibold text-gray-900 truncate">{app.user.name}</h3>
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <h3 className="font-semibold text-gray-900 truncate">{app.user.name}</h3>
+                            {app.submission_method === 'admin_assisted' && (
+                              <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200 text-[10px] px-1.5 py-0 font-normal">
+                                Assisted
+                              </Badge>
+                            )}
+                          </div>
                           <p className="text-sm text-gray-600 truncate">{app.user.email}</p>
                           {app.beswan.nama_panggilan && (
                             <p className="text-sm text-gray-500">({app.beswan.nama_panggilan})</p>
@@ -1297,7 +1311,14 @@ export default function SeleksiBeasiswaPage() {
                     </TableCell>
                     <TableCell>
                       <div>
-                        <div className="font-medium">{app.user.name}</div>
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className="font-medium">{app.user.name}</span>
+                          {app.submission_method === 'admin_assisted' && (
+                            <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200 text-[10px] px-1.5 py-0 font-normal">
+                              Assisted
+                            </Badge>
+                          )}
+                        </div>
                         <div className="text-sm text-muted-foreground">{app.user.email}</div>
                         {app.beswan.nama_panggilan && (
                           <div className="text-sm text-muted-foreground">
