@@ -77,7 +77,7 @@ const getNavData = (currentPath: string, applicationStatus: ApplicationStatus | 
   
   // ✅ Logic untuk disable tahapan berdasarkan status
   const canAccessInterview = isFinalized && ['lolos_berkas', 'lolos_wawancara', 'diterima'].includes(applicationStatusValue)
-  const canAccessResult = isFinalized && ['lolos_wawancara', 'diterima', 'ditolak'].includes(applicationStatusValue)
+  const canAccessResult = true // ✅ Selalu dapat diakses agar peserta dapat melihat hasil seleksi mereka
   
   return {
     navMain: [
@@ -160,23 +160,18 @@ const getNavData = (currentPath: string, applicationStatus: ApplicationStatus | 
           },
           {            title: "Jadwal Wawancara",
             url: "/form-pendaftaran/seleksi/jadwal-wawancara",
-            disabled: !canAccessInterview || applicationStatus?.status === 'ditolak', // ✅ UPDATED: Lock jika ditolak
+            disabled: !canAccessInterview,
             isActive: currentPath === '/form-pendaftaran/seleksi/jadwal-wawancara',
-            badge: !canAccessInterview || applicationStatus?.status === 'ditolak' ? {
+            badge: !canAccessInterview ? {
               icon: Lock,
               color: "text-gray-400",
-              tooltip: applicationStatus?.status === 'ditolak' ? "Tidak lolos seleksi berkas" : "Menunggu lolos seleksi berkas"
+              tooltip: "Hanya untuk peserta lolos seleksi berkas"
             } : undefined
           },
-          {            title: "Hasil Seleksi", // ✅ UPDATED: Rename dari "Hasil Wawancara"
+          {            title: "Hasil Seleksi", // ✅ UPDATED: Selalu bisa dibuka untuk melihat hasil seleksi
             url: "/form-pendaftaran/seleksi/hasil-wawancara",
-            disabled: !canAccessResult,
+            disabled: false,
             isActive: currentPath === '/form-pendaftaran/seleksi/hasil-wawancara',
-            badge: !canAccessResult ? {
-              icon: Lock,
-              color: "text-gray-400",
-              tooltip: "Menunggu finalisasi berkas"
-            } : undefined
           },
         ],
       },

@@ -10,7 +10,8 @@ import {
   Info,
   ExternalLink,
   Mail,
-  Loader2
+  Loader2,
+  Video
 } from "lucide-react"
 
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
@@ -117,21 +118,14 @@ export default function StatusKelulusanPage() {
 
   // ✅ Dynamic status badge based on application status
   const getStatusBadge = () => {
-    if (!applicationStatus) return null
+    const status = applicationStatus?.status
 
-    switch (applicationStatus.status) {
+    switch (status) {
       case "diterima":
         return (
           <Badge className="px-3 py-2 text-green-800 bg-green-100 text-md hover:bg-green-100">
             <CheckCircle2 className="w-4 h-4 mr-1" />
             Diterima
-          </Badge>
-        )
-      case "ditolak":
-        return (
-          <Badge variant="destructive" className="px-3 py-2 text-md">
-            <XCircle className="w-4 h-4 mr-1" />
-            Tidak Diterima
           </Badge>
         )
       case "lolos_wawancara":
@@ -141,11 +135,19 @@ export default function StatusKelulusanPage() {
             Lolos Wawancara - Menunggu Keputusan Akhir
           </Badge>
         )
-      default:
+      case "lolos_berkas":
         return (
-          <Badge variant="outline" className="px-3 py-2 text-yellow-800 bg-yellow-100 text-md hover:bg-yellow-100">
-            <Clock className="w-4 h-4 mr-1" />
-            Menunggu Pengumuman
+          <Badge className="px-3 py-2 text-blue-800 bg-blue-100 text-md hover:bg-blue-100">
+            <CheckCircle2 className="w-4 h-4 mr-1" />
+            Lolos Seleksi Berkas
+          </Badge>
+        )
+      default:
+        // Semua selain lolos wawancara / lolos berkas / diterima dinyatakan tidak lolos seleksi administrasi
+        return (
+          <Badge variant="destructive" className="px-3 py-2 text-md">
+            <XCircle className="w-4 h-4 mr-1" />
+            Tidak Lolos Seleksi Administrasi
           </Badge>
         )
     }
@@ -181,17 +183,17 @@ export default function StatusKelulusanPage() {
 
   // ✅ Dynamic status message
   const getStatusMessage = () => {
-    if (!applicationStatus) return ""
+    const status = applicationStatus?.status
 
-    switch (applicationStatus.status) {
+    switch (status) {
       case "diterima":
         return "Selamat! Anda telah diterima sebagai penerima Beasiswa Bersekolah. Bergabunglah dengan grup WhatsApp penerima beasiswa untuk mendapatkan informasi terbaru dan berkomunikasi dengan sesama penerima beasiswa."
-      case "ditolak":
-        return "Mohon maaf, aplikasi Anda belum berhasil pada periode ini. Jangan berkecil hati, tetap semangat untuk kesempatan berikutnya."
       case "lolos_wawancara":
         return "Selamat! Anda telah lolos tahap wawancara. Pengumuman penerima beasiswa akan diumumkan segera."
+      case "lolos_berkas":
+        return "Selamat! Anda dinyatakan lolos seleksi berkas administrasi dan berhak mengikuti tahap wawancara Beasiswa Bersekolah 2027. Saat ini tahap wawancara sedang berlangsung. Silakan cek Jadwal Wawancara Anda untuk informasi tanggal, waktu, dan tautan meeting."
       default:
-        return "Pengumuman kelulusan akan tersedia setelah proses seleksi selesai. Pastikan untuk memeriksa halaman ini secara berkala."
+        return "Maaf, Anda tidak lolos seleksi administrasi Beasiswa Bersekolah 2027. Terima kasih atas partisipasi dan antusiasme Anda dalam proses pendaftaran Beasiswa Bersekolah. Seluruh berkas pendaftar telah melalui proses penilaian administrasi yang ketat. Tetap semangat dalam menempuh pendidikan dan jangan pernah menyerah dalam mengejar cita-citamu!"
     }
   }
 
@@ -217,37 +219,10 @@ export default function StatusKelulusanPage() {
     )
   }
 
-  // ✅ Show waiting message for non-final statuses
-  if (!applicationStatus || !['diterima', 'ditolak', 'lolos_wawancara'].includes(applicationStatus.status)) {
-    return (
-      <div className="container py-6 mx-auto">
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold tracking-tight">Status Kelulusan</h1>
-          <p className="text-muted-foreground">
-            Informasi hasil seleksi beasiswa dan langkah selanjutnya
-          </p>
-        </div>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Pengumuman Belum Tersedia</CardTitle>
-            <CardDescription>
-              Menunggu hasil seleksi beasiswa
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Alert className="border-blue-200 bg-blue-50">
-              <Info className="w-4 h-4 text-blue-500" />
-              <AlertTitle>Menunggu Pengumuman</AlertTitle>
-              <AlertDescription>
-                {getStatusMessage()}
-              </AlertDescription>
-            </Alert>
-          </CardContent>
-        </Card>
-      </div>
-    )
-  }
+  const isAccepted = applicationStatus?.status === 'diterima'
+  const isInterviewPassed = applicationStatus?.status === 'lolos_wawancara'
+  const isBerkasPassed = applicationStatus?.status === 'lolos_berkas'
+  const isPassedAdministrative = isAccepted || isInterviewPassed || isBerkasPassed
 
   return (
     <div className="container py-6 mx-auto">
@@ -260,13 +235,13 @@ export default function StatusKelulusanPage() {
 
       <div className="grid gap-6">
         {/* Main Status Card */}
-        <Card>
+        <Card className={!isPassedAdministrative ? "border-red-200" : ""}>
           <CardHeader className="pb-2">
             <div className="flex items-start justify-between">
               <div>
                 <CardTitle>Status Kelulusan Beasiswa</CardTitle>
                 <CardDescription>
-                  {applicationStatus.updated_at && `Diperbarui pada ${formatDate(applicationStatus.updated_at)}`}
+                  {applicationStatus?.updated_at && `Diperbarui pada ${formatDate(applicationStatus.updated_at)}`}
                 </CardDescription>
               </div>
               <div>
@@ -278,37 +253,67 @@ export default function StatusKelulusanPage() {
             <div className="space-y-6">
               {/* Status Message */}
               <div className={`p-6 rounded-lg border ${
-                applicationStatus.status === 'diterima' ? 'border-green-200 bg-green-50' :
-                applicationStatus.status === 'ditolak' ? 'border-red-200 bg-red-50' :
-                'border-blue-200 bg-blue-50'
+                isAccepted ? 'border-green-200 bg-green-50' :
+                isBerkasPassed || isInterviewPassed ? 'border-blue-200 bg-blue-50' :
+                'border-red-200 bg-red-50'
               }`}>
-                <div className="flex items-center gap-4">
-                  {applicationStatus.status === 'diterima' ? <Trophy className="w-16 h-16 text-green-600" /> :
-                   applicationStatus.status === 'ditolak' ? <XCircle className="w-16 h-16 text-red-600" /> :
-                   <Clock className="w-16 h-16 text-blue-600" />}
-                  <div>
-                    <h2 className={`text-xl font-bold ${
-                      applicationStatus.status === 'diterima' ? 'text-green-800' :
-                      applicationStatus.status === 'ditolak' ? 'text-red-800' :
-                      'text-blue-800'
+                <div className="flex items-start gap-4">
+                  {isAccepted ? <Trophy className="w-16 h-16 text-green-600 flex-shrink-0" /> :
+                   isBerkasPassed ? <CheckCircle2 className="w-16 h-16 text-blue-600 flex-shrink-0" /> :
+                   isInterviewPassed ? <Clock className="w-16 h-16 text-blue-600 flex-shrink-0" /> :
+                   <XCircle className="w-16 h-16 text-red-600 flex-shrink-0" />}
+                  <div className="flex-1">
+                    <h2 className={`text-xl font-bold mb-1 ${
+                      isAccepted ? 'text-green-800' :
+                      isBerkasPassed || isInterviewPassed ? 'text-blue-800' :
+                      'text-red-800'
                     }`}>
-                      {applicationStatus.status === 'diterima' ? 'Selamat!' :
-                       applicationStatus.status === 'ditolak' ? 'Mohon Maaf' :
-                       'Informasi'}
+                      {isPassedAdministrative ? 'Selamat!' : 'Mohon Maaf'}
                     </h2>
-                    <p className={`${
-                      applicationStatus.status === 'diterima' ? 'text-green-700' :
-                      applicationStatus.status === 'ditolak' ? 'text-red-700' :
-                      'text-blue-700'
+                    
+                    {!isPassedAdministrative && (
+                      <p className="text-base font-semibold text-red-800 mb-2">
+                        Maaf, Anda tidak lolos seleksi administrasi Beasiswa Bersekolah 2027
+                      </p>
+                    )}
+
+                    <p className={`text-sm leading-relaxed ${
+                      isAccepted ? 'text-green-700' :
+                      isBerkasPassed || isInterviewPassed ? 'text-blue-700' :
+                      'text-red-700'
                     }`}>
                       {getStatusMessage()}
                     </p>
+
+                    {isBerkasPassed && (
+                      <div className="mt-4">
+                        <Button asChild className="bg-blue-600 hover:bg-blue-700">
+                          <a href="/form-pendaftaran/seleksi/jadwal-wawancara">
+                            <Video className="w-4 h-4 mr-2" />
+                            Lihat Jadwal Wawancara
+                          </a>
+                        </Button>
+                      </div>
+                    )}
+
+                    {!isPassedAdministrative && (
+                      <div className="mt-4">
+                        <Button 
+                          variant="outline" 
+                          className="border-red-300 text-red-700 hover:bg-red-100"
+                          onClick={() => window.open('https://www.instagram.com/p/DfqxJdpILkc/', '_blank')}
+                        >
+                          <ExternalLink className="w-4 h-4 mr-2" />
+                          Lihat Pengumuman Resmi di Instagram
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
 
               {/* Admin Notes */}
-              {applicationStatus.catatan_admin && (
+              {applicationStatus?.catatan_admin && (
                 <>
                   <Separator />
                   <div>
@@ -324,7 +329,7 @@ export default function StatusKelulusanPage() {
         </Card>
 
         {/* Join WhatsApp Group Card - Hanya untuk yang diterima */}
-        {applicationStatus.status === 'diterima' && getWhatsAppGroupLink() && (
+        {applicationStatus?.status === 'diterima' && getWhatsAppGroupLink() && (
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center">

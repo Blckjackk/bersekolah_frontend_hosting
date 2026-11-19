@@ -13,7 +13,9 @@ import {
   CheckCircle,
   Info,
   Loader2,
-  RefreshCw
+  RefreshCw,
+  XCircle,
+  Lock
 } from "lucide-react"
 
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
@@ -135,6 +137,8 @@ export default function ProgresPage() {
       const sosmedComplete = sosmedDocs.length >= 2 && sosmedDocs.filter((d: any) => d.status === 'verified').length >= 2
       const pendukungComplete = true // Optional
 
+      const isCandidatePassing = ['lolos_berkas', 'lolos_wawancara', 'diterima'].includes(applicationStatus?.status || '')
+
       // ✅ Build dynamic stages
       const stages: Stage[] = [
         {
@@ -181,52 +185,55 @@ export default function ProgresPage() {
         {
           id: "seleksi_berkas",
           name: "Seleksi Berkas",
-          status: applicationStatus?.finalized_at ? "completed" : 
-                  (wajibComplete && sosmedComplete) ? "in_progress" : "not_started",
-          progress: applicationStatus?.finalized_at ? 100 : 
-                   (wajibComplete && sosmedComplete) ? 50 : 0,
+          status: "completed",
+          progress: 100,
           details: [
             { 
-              name: "Hasil Seleksi Berkas", 
-              status: applicationStatus?.finalized_at ? "completed" : "not_started", 
-              url: "/form-pendaftaran/seleksi/berkas" 
+              name: isCandidatePassing ? "Hasil Seleksi Berkas (Lolos)" : "Hasil Seleksi Berkas (Tidak Lolos)", 
+              status: "completed", 
+              url: "/form-pendaftaran/status/kelulusan",
+              verification_status: isCandidatePassing ? "verified" : "rejected"
             }
           ]
         },
         {
           id: "wawancara",
           name: "Tahap Wawancara",
-          status: applicationStatus?.status === 'lolos_berkas' ? "in_progress" : 
-                  ['lolos_wawancara', 'diterima'].includes(applicationStatus?.status) ? "completed" : "not_started",
-          progress: ['lolos_wawancara', 'diterima'].includes(applicationStatus?.status) ? 100 : 
-                   applicationStatus?.status === 'lolos_berkas' ? 50 : 0,
+          status: isCandidatePassing ? 
+                    (['lolos_wawancara', 'diterima'].includes(applicationStatus?.status) ? "completed" : "in_progress") : 
+                    "not_started",
+          progress: isCandidatePassing ? 
+                    (['lolos_wawancara', 'diterima'].includes(applicationStatus?.status) ? 100 : 50) : 
+                    0,
           details: [
             { 
-              name: "Jadwal Wawancara", 
-              // ✅ UPDATED: Jadwal wawancara completed jika sudah lolos wawancara atau diterima
-              status: ['lolos_wawancara', 'diterima'].includes(applicationStatus?.status) ? "completed" :
-                      applicationStatus?.status === 'lolos_berkas' ? "in_progress" : "not_started", 
-              url: "/form-pendaftaran/seleksi/jadwal-wawancara" 
+              name: isCandidatePassing ? "Jadwal Wawancara" : "Jadwal Wawancara (Akses Ditutup - Tidak Lolos Berkas)", 
+              status: isCandidatePassing ? 
+                      (['lolos_wawancara', 'diterima'].includes(applicationStatus?.status) ? "completed" : "in_progress") : 
+                      "not_started", 
+              url: isCandidatePassing ? "/form-pendaftaran/seleksi/jadwal-wawancara" : "/form-pendaftaran/status/kelulusan" 
             },
             { 
-              name: "Hasil Wawancara", 
-              status: ['lolos_wawancara', 'diterima'].includes(applicationStatus?.status) ? "completed" : "not_started", 
-              url: "/form-pendaftaran/seleksi/hasil-wawancara" 
+              name: isCandidatePassing ? "Hasil Wawancara" : "Hasil Wawancara (Akses Ditutup)", 
+              status: isCandidatePassing ? 
+                      (['lolos_wawancara', 'diterima'].includes(applicationStatus?.status) ? "completed" : "not_started") : 
+                      "not_started", 
+              url: isCandidatePassing ? "/form-pendaftaran/seleksi/hasil-wawancara" : "/form-pendaftaran/status/kelulusan" 
             }
           ]
         },
         {
           id: "kelulusan",
           name: "Pengumuman Kelulusan",
-          status: applicationStatus?.status === 'diterima' ? "completed" : 
-                  ['lolos_wawancara', 'ditolak'].includes(applicationStatus?.status) ? "in_progress" : "not_started",
-          progress: applicationStatus?.status === 'diterima' ? 100 : 
-                   ['lolos_wawancara', 'ditolak'].includes(applicationStatus?.status) ? 50 : 0,
+          status: (!isCandidatePassing || applicationStatus?.status === 'diterima') ? "completed" : 
+                  ['lolos_wawancara', 'lolos_berkas'].includes(applicationStatus?.status) ? "in_progress" : "not_started",
+          progress: (!isCandidatePassing || applicationStatus?.status === 'diterima') ? 100 : 50,
           details: [
             { 
-              name: "Status Kelulusan", 
-              status: ['diterima', 'ditolak'].includes(applicationStatus?.status) ? "completed" : "not_started", 
-              url: "/form-pendaftaran/status/kelulusan" 
+              name: isCandidatePassing ? "Status Kelulusan" : "Status Kelulusan: Tidak Lolos Seleksi Administrasi", 
+              status: "completed", 
+              url: "/form-pendaftaran/status/kelulusan",
+              verification_status: !isCandidatePassing ? "rejected" : undefined
             }
           ]
         }
@@ -235,10 +242,11 @@ export default function ProgresPage() {
       // ✅ Calculate overall progress
       const completedStages = stages.filter(s => s.status === "completed").length
       const inProgressStages = stages.filter(s => s.status === "in_progress").length
-      const overallProgress = Math.round(((completedStages + (inProgressStages * 0.5)) / stages.length) * 100)
+      const overallProgress = !isCandidatePassing ? 100 : Math.round(((completedStages + (inProgressStages * 0.5)) / stages.length) * 100)
 
       // ✅ Determine current stage
-      const currentStage = stages.find(s => s.status === "in_progress")?.id || 
+      const currentStage = !isCandidatePassing ? "kelulusan" : 
+                          stages.find(s => s.status === "in_progress")?.id || 
                           stages.find(s => s.status === "not_started")?.id || 
                           "kelulusan"
 
@@ -329,6 +337,81 @@ export default function ProgresPage() {
           </Badge>
         )
     }
+  }
+
+  // ✅ Get stage badge dengan status administrasi yang akurat
+  const getStageBadge = (stage: Stage) => {
+    const isPassingCandidate = ['lolos_berkas', 'lolos_wawancara', 'diterima'].includes(applicationProgress?.application_status || '')
+
+    if (!isPassingCandidate) {
+      if (stage.id === 'seleksi_berkas') {
+        return (
+          <Badge variant="destructive">
+            <XCircle className="w-3 h-3 mr-1" />
+            Tidak Lolos
+          </Badge>
+        )
+      }
+      if (stage.id === 'wawancara') {
+        return (
+          <Badge variant="outline" className="text-gray-400 bg-gray-50 border-gray-200">
+            <Lock className="w-3 h-3 mr-1" />
+            Tidak Memenuhi Syarat
+          </Badge>
+        )
+      }
+      if (stage.id === 'kelulusan') {
+        return (
+          <Badge variant="destructive">
+            <XCircle className="w-3 h-3 mr-1" />
+            Selesai (Tidak Lolos)
+          </Badge>
+        )
+      }
+    } else {
+      if (stage.id === 'seleksi_berkas') {
+        return (
+          <Badge className="text-green-800 bg-green-100 hover:bg-green-100">
+            <CheckCircle2 className="w-3 h-3 mr-1" />
+            Lolos Seleksi
+          </Badge>
+        )
+      }
+      if (stage.id === 'wawancara') {
+        if (['lolos_wawancara', 'diterima'].includes(applicationProgress?.application_status || '')) {
+          return (
+            <Badge className="text-green-800 bg-green-100 hover:bg-green-100">
+              <CheckCircle2 className="w-3 h-3 mr-1" />
+              Lolos Wawancara
+            </Badge>
+          )
+        }
+        return (
+          <Badge className="text-blue-800 bg-blue-100 hover:bg-blue-100">
+            <Clock className="w-3 h-3 mr-1" />
+            Sedang Berlangsung
+          </Badge>
+        )
+      }
+      if (stage.id === 'kelulusan') {
+        if (applicationProgress?.application_status === 'diterima') {
+          return (
+            <Badge className="text-emerald-800 bg-emerald-100 hover:bg-emerald-100">
+              <CheckCircle2 className="w-3 h-3 mr-1" />
+              Diterima
+            </Badge>
+          )
+        }
+        return (
+          <Badge variant="outline" className="text-blue-700 bg-blue-50 border-blue-200">
+            <Clock className="w-3 h-3 mr-1" />
+            Menunggu Hasil
+          </Badge>
+        )
+      }
+    }
+
+    return getStatusBadge(stage.status)
   }
 
   // ✅ Get status icon
@@ -422,32 +505,36 @@ export default function ProgresPage() {
                 <Progress value={applicationProgress.overall_progress} className="h-2" />
               </div>
               
-              {applicationProgress.finalized_at ? (
+              {!['lolos_berkas', 'lolos_wawancara', 'diterima'].includes(applicationProgress.application_status || '') ? (
+                <Alert variant="destructive" className="border-red-200 bg-red-50 text-red-800">
+                  <XCircle className="w-4 h-4 text-red-600" />
+                  <AlertTitle className="font-bold text-red-800">Seleksi Administrasi Selesai</AlertTitle>
+                  <AlertDescription className="text-red-700">
+                    Maaf, Anda tidak lolos seleksi administrasi Beasiswa Bersekolah 2027. Tahap administrasi telah selesai dan saat ini tahap wawancara sedang berlangsung bagi peserta yang lolos.
+                  </AlertDescription>
+                </Alert>
+              ) : applicationProgress.application_status === 'lolos_berkas' ? (
+                <Alert className="border-blue-200 bg-blue-50 text-blue-800">
+                  <CheckCircle className="w-4 h-4 text-blue-600" />
+                  <AlertTitle className="font-bold text-blue-800">Selamat! Anda Lolos Seleksi Berkas</AlertTitle>
+                  <AlertDescription className="text-blue-700">
+                    Aplikasi beasiswa Anda telah lolos seleksi berkas administrasi dan berhak mengikuti tahap wawancara Beasiswa Bersekolah 2027.
+                  </AlertDescription>
+                </Alert>
+              ) : applicationProgress.finalized_at ? (
                 <Alert className="border-green-200 bg-green-50">
                   <CheckCircle className="w-4 h-4 text-green-600" />
-                  <AlertTitle className="text-green-800">Aplikasi Telah Dikirim</AlertTitle>
+                  <AlertTitle className="text-green-800">Aplikasi Telah Diproses</AlertTitle>
                   <AlertDescription className="text-green-700">
-                    Aplikasi beasiswa Anda telah dikirim pada {new Date(applicationProgress.finalized_at).toLocaleDateString('id-ID', { 
-                      day: 'numeric', 
-                      month: 'long', 
-                      year: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit'
-                    })}. Silakan tunggu hasil seleksi.
+                    Aplikasi beasiswa Anda telah diproses.
                   </AlertDescription>
                 </Alert>
               ) : (
-                <Alert>
-                  <Calendar className="w-4 h-4" />
-                  <AlertTitle>Tenggat Waktu</AlertTitle>
-                  <AlertDescription>
-                    Lengkapi seluruh pendaftaran sebelum {new Date(applicationProgress.submission_deadline).toLocaleDateString('id-ID', { 
-                      day: 'numeric', 
-                      month: 'long', 
-                      year: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit'
-                    })} ({calculateTimeRemaining()})
+                <Alert variant="destructive" className="border-red-200 bg-red-50 text-red-800">
+                  <XCircle className="w-4 h-4 text-red-600" />
+                  <AlertTitle className="font-bold text-red-800">Seleksi Administrasi Telah Ditutup</AlertTitle>
+                  <AlertDescription className="text-red-700">
+                    Maaf, Anda tidak lolos seleksi administrasi Beasiswa Bersekolah 2027 karena pendaftaran telah ditutup.
                   </AlertDescription>
                 </Alert>
               )}
@@ -471,11 +558,15 @@ export default function ProgresPage() {
                     <div className="flex items-center gap-2">
                       <div 
                         className={`flex items-center justify-center rounded-full p-1 h-6 w-6 text-white ${
-                          stage.status === 'completed' 
-                            ? 'bg-green-600' 
-                            : stage.status === 'in_progress' 
-                              ? 'bg-blue-600' 
-                              : 'bg-gray-400'
+                          !['lolos_berkas', 'lolos_wawancara', 'diterima'].includes(applicationProgress.application_status || '') && (stage.id === 'seleksi_berkas' || stage.id === 'kelulusan')
+                            ? 'bg-red-500'
+                            : !['lolos_berkas', 'lolos_wawancara', 'diterima'].includes(applicationProgress.application_status || '') && stage.id === 'wawancara'
+                              ? 'bg-gray-400'
+                              : stage.status === 'completed' 
+                                ? 'bg-green-600' 
+                                : stage.status === 'in_progress' 
+                                  ? 'bg-blue-600' 
+                                  : 'bg-gray-400'
                         }`}
                       >
                         {index + 1}
@@ -483,7 +574,7 @@ export default function ProgresPage() {
                       <h3 className="font-medium">{stage.name}</h3>
                     </div>
                     <div>
-                      {getStatusBadge(stage.status)}
+                      {getStageBadge(stage)}
                     </div>
                   </div>
                   

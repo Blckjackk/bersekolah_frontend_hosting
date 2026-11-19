@@ -236,23 +236,16 @@ export default function BerandaPage() {
   // ✅ Update userData berdasarkan status aplikasi dan dokumen
   useEffect(() => {
     if (applicationStatus && documentsStatus) {
-      // Status berkas berdasarkan finalisasi dan verifikasi
-      let statusBerkas = "Belum Lengkap"
-      if (applicationStatus.finalized_at) {
-        const requiredDocs = documentsStatus.documents_status.filter(doc => doc.required)
-        const verifiedDocs = requiredDocs.filter(doc => doc.verification_status === 'verified')
+      const isCandidatePassing = ['lolos_berkas', 'lolos_wawancara', 'diterima'].includes(applicationStatus.status)
 
-        if (verifiedDocs.length === requiredDocs.length && requiredDocs.length > 0) {
-          statusBerkas = "Lolos Verifikasi"
-        } else {
-          statusBerkas = "Menunggu Verifikasi"
-        }
-      } else if (documentsStatus.can_finalize) {
-        statusBerkas = "Siap Finalisasi"
+      // Status berkas
+      let statusBerkas = "Tidak Lolos Seleksi"
+      if (isCandidatePassing) {
+        statusBerkas = "Lolos Seleksi Berkas"
       }
 
       // Status wawancara
-      let statusWawancara = "Belum Terjadwal"
+      let statusWawancara = "Tidak Memenuhi Syarat"
       if (applicationStatus.status === 'lolos_berkas') {
         if (applicationStatus.interview_date && applicationStatus.interview_time) {
           statusWawancara = "Terjadwal"
@@ -261,35 +254,30 @@ export default function BerandaPage() {
         }
       } else if (['lolos_wawancara', 'diterima'].includes(applicationStatus.status)) {
         statusWawancara = "Selesai"
-      } else if (applicationStatus.status === 'ditolak') {
-        statusWawancara = "Tidak Lolos"
       }
 
       // Status kelulusan
-      let statusKelulusan = "Proses Seleksi"
+      let statusKelulusan = "Tidak Lolos Administrasi"
       switch (applicationStatus.status) {
         case 'diterima':
           statusKelulusan = "Diterima"
           break
         case 'ditolak':
-          statusKelulusan = "Tidak Diterima"
+          statusKelulusan = "Tidak Lolos Administrasi"
           break
         case 'lolos_wawancara':
           statusKelulusan = "Menunggu Pengumuman"
           break
         case 'lolos_berkas':
-          statusKelulusan = "Lolos Berkas"
-          break
-        case 'pending':
-          statusKelulusan = "Menunggu Review"
+          statusKelulusan = "Tahap Wawancara"
           break
         default:
-          statusKelulusan = "Proses Seleksi"
+          statusKelulusan = "Tidak Lolos Administrasi"
       }
 
       setUserData(prev => ({
         ...prev,
-        pendaftaranProgress: Math.round(documentsStatus.overall_progress),
+        pendaftaranProgress: isCandidatePassing ? Math.round(documentsStatus.overall_progress) : 100,
         statusBerkas,
         statusWawancara,
         statusKelulusan
@@ -395,13 +383,16 @@ export default function BerandaPage() {
         </CardHeader>        <CardContent>
           <div className="space-y-6">
             {/* Sambutan untuk calon beswan */}
-            <div className="p-4 border border-blue-100 rounded-lg bg-blue-50">
-              <p className="text-blue-700">
-                Selamat datang di Portal Pendaftaran Beasiswa Yayasan Bersekolah! Kami sangat mengapresiasi tekad dan semangat Anda untuk mengikuti program beasiswa ini.
-                Kami percaya bahwa pendidikan adalah kunci menuju masa depan yang lebih baik, dan kami berkomitmen untuk mendukung Anda dalam meraih impian.
+            <div className={`p-4 border rounded-lg ${!['lolos_berkas', 'lolos_wawancara', 'diterima'].includes(applicationStatus?.status || '') ? 'border-red-200 bg-red-50 text-red-800' : 'border-blue-100 bg-blue-50 text-blue-700'}`}>
+              <p className="font-semibold mb-1">
+                {!['lolos_berkas', 'lolos_wawancara', 'diterima'].includes(applicationStatus?.status || '') 
+                  ? 'Pengumuman Hasil Seleksi Administrasi' 
+                  : 'Selamat datang di Portal Pendaftaran Beasiswa Yayasan Bersekolah!'}
               </p>
-              <p className="mt-2 text-blue-700">
-                Mari lengkapi dokumen-dokumen yang diperlukan dan ikuti proses seleksi dengan baik. Jika Anda memiliki pertanyaan, jangan ragu untuk menghubungi tim dukungan kami. Semoga sukses!
+              <p className="text-sm leading-relaxed">
+                {!['lolos_berkas', 'lolos_wawancara', 'diterima'].includes(applicationStatus?.status || '')
+                  ? 'Tahap seleksi berkas administrasi Beasiswa Bersekolah 2027 telah resmi ditutup. Berdasarkan hasil penilaian, mohon maaf Anda belum dinyatakan lolos ke tahap wawancara pada periode ini. Terima kasih atas partisipasi dan antusiasme Anda, tetap semangat dan terus berprestasi!'
+                  : 'Kami sangat mengapresiasi tekad dan semangat Anda untuk mengikuti program beasiswa ini. Kami berkomitmen untuk mendukung Anda dalam meraih impian. Mari ikuti proses seleksi dengan baik. Semoga sukses!'}
               </p>
             </div>
 
@@ -448,25 +439,39 @@ export default function BerandaPage() {
 
 
       {/* ✅ Dynamic Alert berdasarkan status */}
-      {!applicationStatus?.finalized_at && (
-        <Alert variant="destructive">
-          <AlertCircle className="w-4 h-4" />
-          <AlertTitle>Penting!</AlertTitle>
-          <AlertDescription>
-            Batas waktu pengumpulan dokumen adalah <strong>{userData.deadlineDocuments}.</strong> Mohon lengkapi dokumen sebelum tenggat waktu.
+      {!['lolos_berkas', 'lolos_wawancara', 'diterima'].includes(applicationStatus?.status || '') ? (
+        <Alert variant="destructive" className="border-red-200 bg-red-50 text-red-800">
+          <AlertCircle className="w-4 h-4 text-red-600" />
+          <AlertTitle className="font-bold text-red-800">Pengumuman Seleksi Administrasi</AlertTitle>
+          <AlertDescription className="text-red-700">
+            Maaf, Anda tidak lolos seleksi administrasi Beasiswa Bersekolah 2027. Tahap seleksi administrasi telah ditutup dan saat ini proses seleksi telah memasuki tahap wawancara untuk peserta yang lolos.
           </AlertDescription>
         </Alert>
-      )}
-
-      {applicationStatus?.finalized_at && applicationStatus.status === 'pending' && (
-        <Alert>
-          <Info className="w-4 h-4" />
-          <AlertTitle>Berkas Terkirim</AlertTitle>
-          <AlertDescription>
-            Berkas Anda telah dikirim untuk diverifikasi. Silakan tunggu hasil seleksi berkas.
+      ) : applicationStatus?.status === 'lolos_berkas' ? (
+        <Alert className="border-blue-200 bg-blue-50 text-blue-800">
+          <CheckCircle className="w-4 h-4 text-blue-600" />
+          <AlertTitle className="font-bold text-blue-800">Selamat! Anda Lolos Seleksi Berkas</AlertTitle>
+          <AlertDescription className="text-blue-700">
+            Anda telah dinyatakan lolos seleksi administrasi dan berhak mengikuti tahap wawancara. Silakan periksa jadwal dan tautan wawancara Anda di menu <strong>Jadwal Wawancara</strong>.
           </AlertDescription>
         </Alert>
-      )}
+      ) : applicationStatus?.status === 'lolos_wawancara' ? (
+        <Alert className="border-green-200 bg-green-50 text-green-800">
+          <CheckCircle className="w-4 h-4 text-green-600" />
+          <AlertTitle className="font-bold text-green-800">Selamat! Anda Lolos Wawancara</AlertTitle>
+          <AlertDescription className="text-green-700">
+            Anda telah dinyatakan lolos tahap wawancara. Silakan tunggu pengumuman penerima beasiswa akhir.
+          </AlertDescription>
+        </Alert>
+      ) : applicationStatus?.status === 'diterima' ? (
+        <Alert className="border-green-200 bg-green-50 text-green-800">
+          <CheckCircle className="w-4 h-4 text-green-600" />
+          <AlertTitle className="font-bold text-green-800">Selamat! Anda Diterima sebagai Penerima Beasiswa</AlertTitle>
+          <AlertDescription className="text-green-700">
+            Selamat atas keberhasilan Anda menerima Beasiswa Bersekolah 2027! Silakan ikuti instruksi lebih lanjut di menu Status Kelulusan.
+          </AlertDescription>
+        </Alert>
+      ) : null}
       {/* ✅ Dynamic Timeline dari Beasiswa Periods */}
       {timeline.length > 0 && (
         <Card>

@@ -1,11 +1,11 @@
 "use client"
 
 import React, { useState, useEffect, useCallback } from "react"
-import { 
-  Users, 
-  CheckCircle2, 
-  XCircle, 
-  Clock, 
+import {
+  Users,
+  CheckCircle2,
+  XCircle,
+  Clock,
   Search,
   Filter,
   Download,
@@ -218,7 +218,7 @@ export default function SeleksiBeasiswaPage() {
     status: '',
     catatan_admin: ''
   })
-  
+
   // Media Sosial states
   const [isMediaLoading, setIsMediaLoading] = useState(true)
   const [isMediaSaving, setIsMediaSaving] = useState(false)
@@ -248,69 +248,69 @@ export default function SeleksiBeasiswaPage() {
   }, [searchTerm])
 
   // Fetch applications data
-  const fetchApplications = useCallback(async (isRefresh = false, searchOverride?: string) => {
-    try {
-      if (isRefresh) {
-        setIsRefreshing(true)
-      } else if (!isInitialLoading) {
-        setIsTableLoading(true)
-      }
+    const fetchApplications = useCallback(async (isRefresh = false, searchOverride?: string) => {
+      try {
+        if (isRefresh) {
+          setIsRefreshing(true)
+        } else if (!isInitialLoading) {
+          setIsTableLoading(true)
+        }
 
-      const token = localStorage.getItem('bersekolah_auth_token')
-      if (!token) {
+        const token = localStorage.getItem('bersekolah_auth_token')
+        if (!token) {
+          toast({
+            title: "Error",
+            description: "Token tidak ditemukan. Silakan login kembali.",
+            variant: "destructive",
+          })
+          return
+        }
+
+        const baseURL = import.meta.env.PUBLIC_API_BASE_URL
+        const activeSearch = searchOverride !== undefined ? searchOverride : debouncedSearch
+        const params = new URLSearchParams({
+          page: currentPage.toString(),
+          per_page: perPage.toString(),
+          search: activeSearch,
+          status: statusFilter,
+          period: periodFilter,
+          ...(finalizedFilter === 'true' && { finalized: 'true' })
+        })
+
+        const response = await fetch(`${baseURL}/admin/applications?${params}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/json'
+          }
+        })
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`)
+        }
+
+        const result = await response.json()
+        console.log('Applications data:', result)
+
+        if (result.success) {
+          setApplications(result.data || [])
+          setTotalPages(result.meta?.last_page || 1)
+          setTotalItems(result.meta?.total || 0)
+        } else {
+          throw new Error(result.message || 'Failed to fetch applications')
+        }
+
+      } catch (error) {
+        console.error('Error fetching applications:', error)
         toast({
           title: "Error",
-          description: "Token tidak ditemukan. Silakan login kembali.",
+          description: "Gagal mengambil data aplikasi beasiswa.",
           variant: "destructive",
         })
-        return
+      } finally {
+        setIsInitialLoading(false)
+        setIsTableLoading(false)
+        setIsRefreshing(false)
       }
-
-      const baseURL = import.meta.env.PUBLIC_API_BASE_URL
-      const activeSearch = searchOverride !== undefined ? searchOverride : debouncedSearch
-      const params = new URLSearchParams({
-        page: currentPage.toString(),
-        per_page: perPage.toString(),
-        search: activeSearch,
-        status: statusFilter,
-        period: periodFilter,
-        ...(finalizedFilter === 'true' && { finalized: 'true' })
-      })
-
-      const response = await fetch(`${baseURL}/admin/applications?${params}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Accept': 'application/json'
-        }
-      })
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
-
-      const result = await response.json()
-      console.log('Applications data:', result)
-
-      if (result.success) {
-        setApplications(result.data || [])
-        setTotalPages(result.meta?.last_page || 1)
-        setTotalItems(result.meta?.total || 0)
-      } else {
-        throw new Error(result.message || 'Failed to fetch applications')
-      }
-
-    } catch (error) {
-      console.error('Error fetching applications:', error)
-      toast({
-        title: "Error",
-        description: "Gagal mengambil data aplikasi beasiswa.",
-        variant: "destructive",
-      })
-    } finally {
-      setIsInitialLoading(false)
-      setIsTableLoading(false)
-      setIsRefreshing(false)
-    }
   }, [currentPage, perPage, debouncedSearch, statusFilter, periodFilter, finalizedFilter, isInitialLoading, toast])
 
   // Fetch statistics
@@ -472,13 +472,13 @@ export default function SeleksiBeasiswaPage() {
   // ✅ TAMBAHKAN: Validasi form
   const isStatusFormValid = () => {
     if (!statusForm.status) return false
-    
+
     if (statusForm.status === 'lolos_berkas') {
-      return statusForm.interview_date.trim() !== '' && 
-             statusForm.interview_time.trim() !== '' && 
-             statusForm.interview_link.trim() !== ''
+      return statusForm.interview_date.trim() !== '' &&
+        statusForm.interview_time.trim() !== '' &&
+        statusForm.interview_link.trim() !== ''
     }
-    
+
     return true
   }
 
@@ -637,23 +637,23 @@ export default function SeleksiBeasiswaPage() {
   useEffect(() => {
     // Reset page to 1 when filters or search change
     setCurrentPage(1)
-  }, [debouncedSearch, statusFilter, periodFilter, finalizedFilter])
+}, [debouncedSearch, statusFilter, periodFilter, finalizedFilter])
 
-  useEffect(() => {
-    // Fetch applications when filters, search, or pagination change
-    fetchApplications()
+useEffect(() => {
+  // Fetch applications when filters, search, or pagination change
+  fetchApplications()
   }, [currentPage, perPage, debouncedSearch, statusFilter, periodFilter, finalizedFilter])
 
-  // ✅ TAMBAHKAN: Helper function untuk validasi URL
-  const isValidUrl = (url: string) => {
-    try {
-      const urlObj = new URL(url)
-      // Validasi khusus untuk Google Meet atau URL meeting lainnya
-      return urlObj.protocol === 'http:' || urlObj.protocol === 'https:'
-    } catch {
-      return false
-    }
+// ✅ TAMBAHKAN: Helper function untuk validasi URL
+const isValidUrl = (url: string) => {
+  try {
+    const urlObj = new URL(url)
+    // Validasi khusus untuk Google Meet atau URL meeting lainnya
+    return urlObj.protocol === 'http:' || urlObj.protocol === 'https:'
+  } catch {
+    return false
   }
+}
 
   // Render loading state ONLY on initial first load (prevents whole-page unmounting / screen refresh during search)
   if (isInitialLoading) {
@@ -688,8 +688,8 @@ export default function SeleksiBeasiswaPage() {
           </p>
         </div>
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             onClick={() => {
               fetchMediaLinks()
               setMediaSosialDialog(true)
@@ -699,8 +699,8 @@ export default function SeleksiBeasiswaPage() {
             <LinkIcon className="w-4 h-4 mr-2" />
             <span className="sm:inline">Atur Link Grup WA</span>
           </Button>
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             onClick={() => fetchApplications(true)}
             disabled={isRefreshing}
             className="w-full sm:w-auto"
@@ -720,9 +720,9 @@ export default function SeleksiBeasiswaPage() {
               <div className="flex flex-col sm:flex-row items-center justify-center space-y-2 sm:space-y-0 sm:space-x-2 text-center">
                 <AlertCircle className="w-6 h-6 text-red-500 flex-shrink-0" />
                 <p className="text-red-500 text-sm sm:text-base">{statisticsError}</p>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
+                <Button
+                  variant="outline"
+                  size="sm"
                   onClick={() => fetchStatistics()}
                   disabled={isRefreshing}
                   className="w-full sm:w-auto"
@@ -798,7 +798,7 @@ export default function SeleksiBeasiswaPage() {
         <Card className="w-full">
           <CardHeader className="p-4 sm:p-6">
             <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
-              <Share2 className="w-5 h-5" /> 
+              <Share2 className="w-5 h-5" />
               Media Sosial & Kontak Bersekolah
             </CardTitle>
             <CardDescription className="text-sm">
@@ -816,10 +816,10 @@ export default function SeleksiBeasiswaPage() {
                 </Label>
                 <div className="flex flex-col sm:flex-row gap-2">
                   <div className="flex-1">
-                    <Input 
-                      id="twibbon" 
-                      placeholder="https://example.com/twibbon" 
-                      value={twibbonLink} 
+                    <Input
+                      id="twibbon"
+                      placeholder="https://example.com/twibbon"
+                      value={twibbonLink}
                       onChange={(e) => setTwibbonLink(e.target.value)}
                       className="text-sm"
                     />
@@ -853,7 +853,7 @@ export default function SeleksiBeasiswaPage() {
                 </div>
                 <p className="text-xs sm:text-sm text-gray-500">Link Twibbon yang akan dibagikan kepada peserta</p>
               </div>
-              
+
               {/* Instagram */}
               <div className="space-y-2">
                 <Label htmlFor="instagram">
@@ -863,10 +863,10 @@ export default function SeleksiBeasiswaPage() {
                 </Label>
                 <div className="flex flex-col sm:flex-row gap-2">
                   <div className="flex-1">
-                    <Input 
-                      id="instagram" 
-                      placeholder="https://instagram.com/bersekolah" 
-                      value={instagramLink} 
+                    <Input
+                      id="instagram"
+                      placeholder="https://instagram.com/bersekolah"
+                      value={instagramLink}
                       onChange={(e) => setInstagramLink(e.target.value)}
                       className="text-sm"
                     />
@@ -900,7 +900,7 @@ export default function SeleksiBeasiswaPage() {
                 </div>
                 <p className="text-xs sm:text-sm text-gray-500">Link Instagram Bersekolah yang akan dibagikan kepada peserta</p>
               </div>
-              
+
               {/* WhatsApp Group */}
               <div className="space-y-2">
                 <Label htmlFor="whatsapp-group">
@@ -910,10 +910,10 @@ export default function SeleksiBeasiswaPage() {
                 </Label>
                 <div className="flex flex-col sm:flex-row gap-2">
                   <div className="flex-1">
-                    <Input 
-                      id="whatsapp-group" 
-                      placeholder="https://chat.whatsapp.com/..." 
-                      value={whatsappGroupLink} 
+                    <Input
+                      id="whatsapp-group"
+                      placeholder="https://chat.whatsapp.com/..."
+                      value={whatsappGroupLink}
                       onChange={(e) => setWhatsappGroupLink(e.target.value)}
                       className="text-sm"
                     />
@@ -947,7 +947,7 @@ export default function SeleksiBeasiswaPage() {
                 </div>
                 <p className="text-xs sm:text-sm text-gray-500">Link grup WhatsApp Bersekolah untuk peserta</p>
               </div>
-              
+
               {/* WhatsApp Number */}
               {/* WhatsApp Number - Original field kept */}
               <div className="space-y-2">
@@ -958,10 +958,10 @@ export default function SeleksiBeasiswaPage() {
                 </Label>
                 <div className="flex flex-col sm:flex-row gap-2">
                   <div className="flex-1">
-                    <Input 
-                      id="whatsapp-number" 
-                      placeholder="+6281234567890" 
-                      value={whatsappNumber} 
+                    <Input
+                      id="whatsapp-number"
+                      placeholder="+6281234567890"
+                      value={whatsappNumber}
                       onChange={(e) => setWhatsappNumber(e.target.value)}
                       className="text-sm"
                     />
@@ -971,8 +971,8 @@ export default function SeleksiBeasiswaPage() {
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <Button variant="outline" size="icon" onClick={() => copyToClipboard(whatsappNumber, "Nomor WhatsApp")}> 
-                              <Copy className="w-4 h-4" /> 
+                            <Button variant="outline" size="icon" onClick={() => copyToClipboard(whatsappNumber, "Nomor WhatsApp")}>
+                              <Copy className="w-4 h-4" />
                             </Button>
                           </TooltipTrigger>
                           <TooltipContent><p>Salin ke clipboard</p></TooltipContent>
@@ -995,7 +995,7 @@ export default function SeleksiBeasiswaPage() {
                 </div>
                 <p className="text-xs sm:text-sm text-gray-500">Nomor WhatsApp HUMAS Bersekolah untuk konsultasi</p>
               </div>
-              
+
               {/* Judul Essay - New field */}
               <div className="space-y-2">
                 <Label htmlFor="judul-essay">
@@ -1184,714 +1184,715 @@ export default function SeleksiBeasiswaPage() {
         </CardHeader>
         <CardContent className="p-0 sm:p-6">
           {/* Mobile View - Cards */}
-          <div className={`lg:hidden space-y-4 p-4 ${isTableLoading ? "opacity-60" : "transition-opacity"}`}>
-            {applications.length === 0 ? (
-              <div className="text-center py-12 text-muted-foreground">
-                <p>Tidak ada aplikasi yang ditemukan</p>
-              </div>
-            ) : (
-              applications.map((app) => (
-                <Card key={app.id} className="border border-gray-200">
-                <CardContent className="p-4">
-                  <div className="space-y-3">
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-start gap-3 flex-1 min-w-0">
-                        <Checkbox
-                          checked={selectedApplications.includes(app.id)}
-                          onCheckedChange={(checked) => handleSelectApplication(app.id, checked as boolean)}
-                          className="mt-1"
-                        />
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-1.5 flex-wrap">
-                            <h3 className="font-semibold text-gray-900 truncate">{app.user.name}</h3>
-                            {app.submission_method === 'admin_assisted' && (
-                              <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200 text-[10px] px-1.5 py-0 font-normal">
-                                Assisted
-                              </Badge>
-                            )}
+                <div className={`lg:hidden space-y-4 p-4 ${isTableLoading ? "opacity-60" : "transition-opacity"}`}>
+                  {applications.length === 0 ? (
+                    <div className="text-center py-12 text-muted-foreground">
+                      <p>Tidak ada aplikasi yang ditemukan</p>
+                    </div>
+                  ) : (
+                    applications.map((app) => (
+                      <Card key={app.id} className="border border-gray-200">
+                        <CardContent className="p-4">
+                          <div className="space-y-3">
+                            <div className="flex items-start justify-between">
+                              <div className="flex items-start gap-3 flex-1 min-w-0">
+                                <Checkbox
+                                  checked={selectedApplications.includes(app.id)}
+                                  onCheckedChange={(checked) => handleSelectApplication(app.id, checked as boolean)}
+                                  className="mt-1"
+                                />
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-center gap-1.5 flex-wrap">
+                                    <h3 className="font-semibold text-gray-900 truncate">{app.user.name}</h3>
+                                    {app.submission_method === 'admin_assisted' && (
+                                      <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200 text-[10px] px-1.5 py-0 font-normal">
+                                        Assisted
+                                      </Badge>
+                                    )}
+                                  </div>
+                                  <p className="text-sm text-gray-600 truncate">{app.user.email}</p>
+                                  {app.beswan.nama_panggilan && (
+                                    <p className="text-sm text-gray-500">({app.beswan.nama_panggilan})</p>
+                                  )}
+                                </div>
+                              </div>
+                              {getStatusBadge(app.status)}
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-2 text-sm">
+                              <div>
+                                <span className="text-gray-500">Periode:</span>
+                                <p className="font-medium">{app.period.nama_periode}</p>
+                                <p className="text-xs text-gray-500">{app.period.tahun}</p>
+                              </div>
+                              <div>
+                                <span className="text-gray-500">Progress:</span>
+                                <div className="space-y-1">
+                                  <Progress value={app.verification_progress} className="h-2" />
+                                  <p className="text-xs text-gray-500">{app.verification_progress}% lengkap</p>
+                                </div>
+                              </div>
+                              <div>
+                                <span className="text-gray-500">Submit:</span>
+                                <p className="font-medium text-xs">
+                                  {app.finalized_at ? (
+                                    <>
+                                      {new Date(app.finalized_at).toLocaleDateString('id-ID')}
+                                      <br />
+                                      {new Date(app.finalized_at).toLocaleTimeString('id-ID', {
+                                        hour: '2-digit',
+                                        minute: '2-digit'
+                                      })}
+                                    </>
+                                  ) : (
+                                    <Badge variant="outline" className="text-xs">
+                                      Belum difinalisasi
+                                    </Badge>
+                                  )}
+                                </p>
+                              </div>
+                              <div>
+                                <span className="text-gray-500">Reviewer:</span>
+                                <p className="font-medium text-sm">
+                                  {app.reviewer ? (
+                                    app.reviewer.name
+                                  ) : (
+                                    <Badge variant="outline" className="text-xs">
+                                      Belum direview
+                                    </Badge>
+                                  )}
+                                </p>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center justify-end gap-2 pt-2">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => {
+                                  fetchApplicationDetail(app.id)
+                                  setDetailDialog(true)
+                                }}
+                                className="text-xs h-8"
+                              >
+                                <Eye className="w-3 h-3 mr-1" />
+                                Lihat
+                              </Button>
+                              <Button
+                                size="sm"
+                                onClick={() => {
+                                  const interviewDate = app.interview_date ? new Date(app.interview_date) : null
+                                  // @ts-ignore - Property exists at runtime
+                                  const interviewTime = app.interview_time ? app.interview_time.substring(0, 5) : ''
+
+                                  // @ts-ignore - Types are compatible at runtime
+                                  setSelectedApplication(app as unknown as ApplicationDetail)
+                                  setStatusForm({
+                                    status: app.status,
+                                    catatan_admin: app.catatan_admin || '',
+                                    interview_date: app.interview_date || '',
+                                    interview_time: interviewTime,
+                                    interview_link: app.interview_link || ''
+                                  })
+                                  setStatusDialog(true)
+                                }}
+                                className="text-xs h-8"
+                              >
+                                <Edit className="w-3 h-3 mr-1" />
+                                Edit
+                              </Button>
+                            </div>
                           </div>
-                          <p className="text-sm text-gray-600 truncate">{app.user.email}</p>
-                          {app.beswan.nama_panggilan && (
-                            <p className="text-sm text-gray-500">({app.beswan.nama_panggilan})</p>
-                          )}
-                        </div>
-                      </div>
-                      {getStatusBadge(app.status)}
-                    </div>
+                        </CardContent>
+                      </Card>
+                    )))}
+                </div>
 
-                    <div className="grid grid-cols-2 gap-2 text-sm">
-                      <div>
-                        <span className="text-gray-500">Periode:</span>
-                        <p className="font-medium">{app.period.nama_periode}</p>
-                        <p className="text-xs text-gray-500">{app.period.tahun}</p>
-                      </div>
-                      <div>
-                        <span className="text-gray-500">Progress:</span>
-                        <div className="space-y-1">
-                          <Progress value={app.verification_progress} className="h-2" />
-                          <p className="text-xs text-gray-500">{app.verification_progress}% lengkap</p>
-                        </div>
-                      </div>
-                      <div>
-                        <span className="text-gray-500">Submit:</span>
-                        <p className="font-medium text-xs">
-                          {app.finalized_at ? (
-                            <>
-                              {new Date(app.finalized_at).toLocaleDateString('id-ID')}
-                              <br />
-                              {new Date(app.finalized_at).toLocaleTimeString('id-ID', { 
-                                hour: '2-digit', 
-                                minute: '2-digit' 
-                              })}
-                            </>
-                          ) : (
-                            <Badge variant="outline" className="text-xs">
-                              Belum difinalisasi
-                            </Badge>
-                          )}
-                        </p>
-                      </div>
-                      <div>
-                        <span className="text-gray-500">Reviewer:</span>
-                        <p className="font-medium text-sm">
-                          {app.reviewer ? (
-                            app.reviewer.name
-                          ) : (
-                            <Badge variant="outline" className="text-xs">
-                              Belum direview
-                            </Badge>
-                          )}
-                        </p>
-                      </div>
-                    </div>
+                {/* Desktop View - Table */}
+                <div className="hidden lg:block overflow-x-auto">
+                    <Table className={isTableLoading ? "opacity-60 transition-opacity" : "transition-opacity"}>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="w-12">
+                            <Checkbox
+                              checked={selectedApplications.length === applications.length && applications.length > 0}
+                              onCheckedChange={handleSelectAll}
+                            />
+                          </TableHead>
+                          <TableHead>Pendaftar</TableHead>
+                          <TableHead>Periode</TableHead>
+                          <TableHead>Status</TableHead>
+                          <TableHead>Progress Dokumen</TableHead>
+                          <TableHead>Tanggal Submit</TableHead>
+                          <TableHead>Reviewer</TableHead>
+                          <TableHead className="w-20">Aksi</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                          {
+                            applications.length === 0 ? (
+                              <TableRow>
+                                <TableCell colSpan={8} className="text-center py-12 text-muted-foreground">
+                                  Tidak ada aplikasi yang ditemukan
+                                </TableCell>
+                              </TableRow>
+                            ) : (
+                              applications.map((app) => (
+                                <TableRow key={app.id}>
+                                  <TableCell>
+                                    <Checkbox
+                                      checked={selectedApplications.includes(app.id)}
+                                      onCheckedChange={(checked) => handleSelectApplication(app.id, checked as boolean)}
+                                    />
+                                  </TableCell>
+                                  <TableCell>
+                                    <div>
+                                      <div className="flex items-center gap-1.5 flex-wrap">
+                                        <span className="font-medium">{app.user.name}</span>
+                                        {app.submission_method === 'admin_assisted' && (
+                                          <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200 text-[10px] px-1.5 py-0 font-normal">
+                                            Assisted
+                                          </Badge>
+                                        )}
+                                      </div>
+                                      <div className="text-sm text-muted-foreground">{app.user.email}</div>
+                                      {app.beswan.nama_panggilan && (
+                                        <div className="text-sm text-muted-foreground">
+                                          ({app.beswan.nama_panggilan})
+                                        </div>
+                                      )}
+                                    </div>
+                                  </TableCell>
+                                  <TableCell>
+                                    <div className="text-sm">
+                                      <div className="font-medium">{app.period.nama_periode}</div>
+                                      <div className="text-muted-foreground">{app.period.tahun}</div>
+                                    </div>
+                                  </TableCell>
+                                  <TableCell>
+                                    {getStatusBadge(app.status)}
+                                  </TableCell>
+                                  <TableCell>
+                                    <div className="space-y-1">
+                                      <Progress value={app.verification_progress} className="h-2" />
+                                      <div className="text-xs text-muted-foreground">
+                                        {app.verification_progress}% lengkap
+                                      </div>
+                                    </div>
+                                  </TableCell>
+                                  <TableCell>
+                                    <div className="text-sm">
+                                      {app.finalized_at ? (
+                                        <>
+                                          <div>{new Date(app.finalized_at).toLocaleDateString('id-ID')}</div>
+                                          <div className="text-xs text-muted-foreground">
+                                            {new Date(app.finalized_at).toLocaleTimeString('id-ID', {
+                                              hour: '2-digit',
+                                              minute: '2-digit'
+                                            })}
+                                          </div>
+                                        </>
+                                      ) : (
+                                        <Badge variant="outline" className="text-xs">
+                                          Belum difinalisasi
+                                        </Badge>
+                                      )}
+                                    </div>
+                                  </TableCell>
+                                  <TableCell>
+                                    {app.reviewer ? (
+                                      <div className="text-sm">{app.reviewer.name}</div>
+                                    ) : (
+                                      <Badge variant="outline" className="text-xs">
+                                        Belum direview
+                                      </Badge>
+                                    )}
+                                  </TableCell>
+                                  <TableCell>
+                                    <div className="flex items-center gap-1">
+                                      <Button
+                                        size="sm"
+                                        variant="ghost"
+                                        onClick={() => {
+                                          fetchApplicationDetail(app.id)
+                                          setDetailDialog(true)
+                                        }}
+                                      >
+                                        <Eye className="w-4 h-4" />
+                                      </Button>
+                                      <Button
+                                        size="sm"
+                                        variant="ghost"
+                                        onClick={() => {
+                                          const interviewDate = app.interview_date ? new Date(app.interview_date) : null
+                                          // @ts-ignore - Property exists at runtime
+                                          const interviewTime = app.interview_time ? app.interview_time.substring(0, 5) : ''
 
-                    <div className="flex items-center justify-end gap-2 pt-2">
+                                          // @ts-ignore - Types are compatible at runtime
+                                          setSelectedApplication(app as unknown as ApplicationDetail)
+                                          setStatusForm({
+                                            status: app.status,
+                                            catatan_admin: app.catatan_admin || '',
+                                            interview_date: app.interview_date || '',
+                                            interview_time: interviewTime,
+                                            interview_link: app.interview_link || ''
+                                          })
+                                          setStatusDialog(true)
+                                        }}
+                                      >
+                                        <Edit className="w-4 h-4" />
+                                      </Button>
+                                    </div>
+                                  </TableCell>
+                                </TableRow>
+                              )))}
+              </TableBody>
+                    </Table>
+                </div>
+
+                {/* Pagination */}
+                {totalPages > 1 && (
+                  <div className="flex flex-col gap-3 p-4 border-t sm:flex-row sm:items-center sm:justify-between">
+                    <div className="text-sm text-muted-foreground text-center sm:text-left">
+                      Halaman {currentPage} dari {totalPages} ({totalItems} total aplikasi)
+                    </div>
+                    <div className="flex items-center justify-center gap-2 sm:justify-end">
                       <Button
-                        size="sm"
                         variant="outline"
-                        onClick={() => {
-                          fetchApplicationDetail(app.id)
-                          setDetailDialog(true)
-                        }}
-                        className="text-xs h-8"
-                      >
-                        <Eye className="w-3 h-3 mr-1" />
-                        Lihat
-                      </Button>
-                      <Button
                         size="sm"
-                        onClick={() => {
-                          const interviewDate = app.interview_date ? new Date(app.interview_date) : null
-                          // @ts-ignore - Property exists at runtime
-                          const interviewTime = app.interview_time ? app.interview_time.substring(0, 5) : ''
-
-                          // @ts-ignore - Types are compatible at runtime
-                          setSelectedApplication(app as unknown as ApplicationDetail)
-                          setStatusForm({
-                            status: app.status,
-                            catatan_admin: app.catatan_admin || '',
-                            interview_date: app.interview_date || '',
-                            interview_time: interviewTime,
-                            interview_link: app.interview_link || ''
-                          })
-                          setStatusDialog(true)
-                        }}
-                        className="text-xs h-8"
+                        onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                        disabled={currentPage === 1}
+                        className="text-xs"
                       >
-                        <Edit className="w-3 h-3 mr-1" />
-                        Edit
+                        <ChevronLeft className="w-3 h-3 mr-1" />
+                        Sebelumnya
+                      </Button>
+                      <span className="text-sm text-muted-foreground px-2">
+                        {currentPage} / {totalPages}
+                      </span>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                        disabled={currentPage === totalPages}
+                        className="text-xs"
+                      >
+                        Selanjutnya
+                        <ChevronRight className="w-3 h-3 ml-1" />
                       </Button>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-
-          {/* Desktop View - Table */}
-          <div className="hidden lg:block overflow-x-auto">
-            <Table className={isTableLoading ? "opacity-60 transition-opacity" : "transition-opacity"}>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-12">
-                    <Checkbox
-                      checked={selectedApplications.length === applications.length && applications.length > 0}
-                      onCheckedChange={handleSelectAll}
-                    />
-                  </TableHead>
-                  <TableHead>Pendaftar</TableHead>
-                  <TableHead>Periode</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Progress Dokumen</TableHead>
-                  <TableHead>Tanggal Submit</TableHead>
-                  <TableHead>Reviewer</TableHead>
-                  <TableHead className="w-20">Aksi</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {applications.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={8} className="text-center py-12 text-muted-foreground">
-                      Tidak ada aplikasi yang ditemukan
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  applications.map((app) => (
-                  <TableRow key={app.id}>
-                    <TableCell>
-                      <Checkbox
-                        checked={selectedApplications.includes(app.id)}
-                        onCheckedChange={(checked) => handleSelectApplication(app.id, checked as boolean)}
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <div>
-                        <div className="flex items-center gap-1.5 flex-wrap">
-                          <span className="font-medium">{app.user.name}</span>
-                          {app.submission_method === 'admin_assisted' && (
-                            <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200 text-[10px] px-1.5 py-0 font-normal">
-                              Assisted
-                            </Badge>
-                          )}
-                        </div>
-                        <div className="text-sm text-muted-foreground">{app.user.email}</div>
-                        {app.beswan.nama_panggilan && (
-                          <div className="text-sm text-muted-foreground">
-                            ({app.beswan.nama_panggilan})
-                          </div>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="text-sm">
-                        <div className="font-medium">{app.period.nama_periode}</div>
-                        <div className="text-muted-foreground">{app.period.tahun}</div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      {getStatusBadge(app.status)}
-                    </TableCell>
-                    <TableCell>
-                      <div className="space-y-1">
-                        <Progress value={app.verification_progress} className="h-2" />
-                        <div className="text-xs text-muted-foreground">
-                          {app.verification_progress}% lengkap
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="text-sm">
-                        {app.finalized_at ? (
-                          <>
-                            <div>{new Date(app.finalized_at).toLocaleDateString('id-ID')}</div>
-                            <div className="text-xs text-muted-foreground">
-                              {new Date(app.finalized_at).toLocaleTimeString('id-ID', { 
-                                hour: '2-digit', 
-                                minute: '2-digit' 
-                              })}
-                            </div>
-                          </>
-                        ) : (
-                          <Badge variant="outline" className="text-xs">
-                            Belum difinalisasi
-                          </Badge>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      {app.reviewer ? (
-                        <div className="text-sm">{app.reviewer.name}</div>
-                      ) : (
-                        <Badge variant="outline" className="text-xs">
-                          Belum direview
-                        </Badge>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-1">
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => {
-                            fetchApplicationDetail(app.id)
-                            setDetailDialog(true)
-                          }}
-                        >
-                          <Eye className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => {
-                            const interviewDate = app.interview_date ? new Date(app.interview_date) : null
-                            // @ts-ignore - Property exists at runtime
-                            const interviewTime = app.interview_time ? app.interview_time.substring(0, 5) : ''
-
-                            // @ts-ignore - Types are compatible at runtime
-                            setSelectedApplication(app as unknown as ApplicationDetail)
-                            setStatusForm({
-                              status: app.status,
-                              catatan_admin: app.catatan_admin || '',
-                              interview_date: app.interview_date || '',
-                              interview_time: interviewTime,
-                              interview_link: app.interview_link || ''
-                            })
-                            setStatusDialog(true)
-                          }}
-                        >
-                          <Edit className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="flex flex-col gap-3 p-4 border-t sm:flex-row sm:items-center sm:justify-between">
-              <div className="text-sm text-muted-foreground text-center sm:text-left">
-                Halaman {currentPage} dari {totalPages} ({totalItems} total aplikasi)
-              </div>
-              <div className="flex items-center justify-center gap-2 sm:justify-end">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                  disabled={currentPage === 1}
-                  className="text-xs"
-                >
-                  <ChevronLeft className="w-3 h-3 mr-1" />
-                  Sebelumnya
-                </Button>
-                <span className="text-sm text-muted-foreground px-2">
-                  {currentPage} / {totalPages}
-                </span>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                  disabled={currentPage === totalPages}
-                  className="text-xs"
-                >
-                  Selanjutnya
-                  <ChevronRight className="w-3 h-3 ml-1" />
-                </Button>
-              </div>
-            </div>
-          )}
-        </CardContent>
+                )}
+              </CardContent>
       </Card>
 
-      {/* Detail Dialog */}
-      <Dialog open={detailDialog} onOpenChange={setDetailDialog}>
-        <DialogContent className="w-full max-w-6xl max-h-[90vh] overflow-y-auto mx-4 sm:mx-8">
-          <DialogHeader className="pb-4">
-            <DialogTitle className="text-lg sm:text-xl">Detail Aplikasi Beasiswa</DialogTitle>
-            <DialogDescription className="text-sm">
-              Informasi lengkap aplikasi beasiswa
-            </DialogDescription>
-          </DialogHeader>
-          
-          {selectedApplication && (
-            <div className="space-y-6">
-              {/* Basic Info */}
-              <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-base sm:text-lg">Informasi Pendaftar</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    <div>
-                      <Label className="text-sm font-medium text-gray-600">Nama Lengkap</Label>
-                      <p className="text-sm font-medium">{selectedApplication.user.name}</p>
-                    </div>
-                    <div>
-                      <Label className="text-sm font-medium text-gray-600">Email</Label>
-                      <p className="text-sm">{selectedApplication.user.email}</p>
-                    </div>
-                    <div>
-                      <Label className="text-sm font-medium text-gray-600">Nama Panggilan</Label>
-                      <p className="text-sm">{selectedApplication.beswan.nama_panggilan}</p>
-                    </div>
-                    <div>
-                      <Label className="text-sm font-medium text-gray-600">Tempat, Tanggal Lahir</Label>
-                      <p className="text-sm">
-                        {selectedApplication.beswan.tempat_lahir}, {" "}
-                        {new Date(selectedApplication.beswan.tanggal_lahir).toLocaleDateString('id-ID')}
-                      </p>
-                    </div>
-                    <div>
-                      <Label className="text-sm font-medium text-gray-600">Jenis Kelamin</Label>
-                      <p className="text-sm">{selectedApplication.beswan.jenis_kelamin}</p>
-                    </div>
-                  </CardContent>
-                </Card>
+          {/* Detail Dialog */}
+          <Dialog open={detailDialog} onOpenChange={setDetailDialog}>
+            <DialogContent className="w-full max-w-6xl max-h-[90vh] overflow-y-auto mx-4 sm:mx-8">
+              <DialogHeader className="pb-4">
+                <DialogTitle className="text-lg sm:text-xl">Detail Aplikasi Beasiswa</DialogTitle>
+                <DialogDescription className="text-sm">
+                  Informasi lengkap aplikasi beasiswa
+                </DialogDescription>
+              </DialogHeader>
 
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-base sm:text-lg">Status Aplikasi</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    <div>
-                      <Label className="text-sm font-medium text-gray-600">Status Saat Ini</Label>
-                      <div className="mt-1">
-                        {getStatusBadge(selectedApplication.status)}
+              {selectedApplication && (
+                <div className="space-y-6">
+                  {/* Basic Info */}
+                  <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                    <Card>
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-base sm:text-lg">Informasi Pendaftar</CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        <div>
+                          <Label className="text-sm font-medium text-gray-600">Nama Lengkap</Label>
+                          <p className="text-sm font-medium">{selectedApplication.user.name}</p>
+                        </div>
+                        <div>
+                          <Label className="text-sm font-medium text-gray-600">Email</Label>
+                          <p className="text-sm">{selectedApplication.user.email}</p>
+                        </div>
+                        <div>
+                          <Label className="text-sm font-medium text-gray-600">Nama Panggilan</Label>
+                          <p className="text-sm">{selectedApplication.beswan.nama_panggilan}</p>
+                        </div>
+                        <div>
+                          <Label className="text-sm font-medium text-gray-600">Tempat, Tanggal Lahir</Label>
+                          <p className="text-sm">
+                            {selectedApplication.beswan.tempat_lahir}, {" "}
+                            {new Date(selectedApplication.beswan.tanggal_lahir).toLocaleDateString('id-ID')}
+                          </p>
+                        </div>
+                        <div>
+                          <Label className="text-sm font-medium text-gray-600">Jenis Kelamin</Label>
+                          <p className="text-sm">{selectedApplication.beswan.jenis_kelamin}</p>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    <Card>
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-base sm:text-lg">Status Aplikasi</CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        <div>
+                          <Label className="text-sm font-medium text-gray-600">Status Saat Ini</Label>
+                          <div className="mt-1">
+                            {getStatusBadge(selectedApplication.status)}
+                          </div>
+                        </div>
+                        <div>
+                          <Label className="text-sm font-medium text-gray-600">Periode Beasiswa</Label>
+                          <p className="text-sm">
+                            {selectedApplication.period.nama_periode} ({selectedApplication.period.tahun})
+                          </p>
+                        </div>
+                        <div>
+                          <Label className="text-sm font-medium text-gray-600">Tanggal Finalisasi</Label>
+                          <p className="text-sm">
+                            {selectedApplication.finalized_at
+                              ? new Date(selectedApplication.finalized_at).toLocaleString('id-ID')
+                              : 'Belum difinalisasi'
+                            }
+                          </p>
+                        </div>
+                        {selectedApplication.reviewer && (
+                          <div>
+                            <Label className="text-sm font-medium">Reviewer</Label>
+                            <p className="text-sm">{selectedApplication.reviewer.name}</p>
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  </div>
+
+                  {/* Document Progress */}
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-lg">Progress Dokumen</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm">Kelengkapan Dokumen</span>
+                          <span className="text-sm font-medium">
+                            {selectedApplication.verification_progress.verified_count}/
+                            {selectedApplication.verification_progress.total_required}
+                          </span>
+                        </div>
+                        <Progress value={selectedApplication.verification_progress.percentage} className="h-3" />
+                        <div className="text-xs text-muted-foreground">
+                          {selectedApplication.verification_progress.percentage}% dokumen telah terverifikasi
+                        </div>
                       </div>
-                    </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Interview Info */}
+                  {(selectedApplication.interview_date || selectedApplication.interview_link) && (
+                    <Card>
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-lg">Informasi Wawancara</CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-2">
+                        {selectedApplication.interview_date && (
+                          <div>
+                            <Label className="text-sm font-medium">Tanggal Wawancara</Label>
+                            <p className="text-sm">
+                              {new Date(selectedApplication.interview_date).toLocaleString('id-ID')}
+                            </p>
+                          </div>
+                        )}
+                        {selectedApplication.interview_link && (
+                          <div>
+                            <Label className="text-sm font-medium">Link Wawancara</Label>
+                            <a
+                              href={selectedApplication.interview_link}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center text-sm text-blue-600 hover:underline"
+                            >
+                              <LinkIcon className="w-3 h-3 mr-1" />
+                              {selectedApplication.interview_link}
+                            </a>
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  )}
+
+                  {/* Admin Notes */}
+                  {selectedApplication.catatan_admin && (
+                    <Card>
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-lg">Catatan Admin</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-sm whitespace-pre-wrap">{selectedApplication.catatan_admin}</p>
+                      </CardContent>
+                    </Card>
+                  )}
+                </div>
+              )}
+            </DialogContent>
+          </Dialog>
+
+          {/* Status Update Dialog */}
+          <Dialog open={statusDialog} onOpenChange={setStatusDialog}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Update Status Aplikasi</DialogTitle>
+                <DialogDescription>
+                  Perbarui status dan tambahkan catatan untuk aplikasi ini
+                </DialogDescription>
+              </DialogHeader>
+
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="status">Status</Label>
+                  <Select value={statusForm.status} onValueChange={(value) => setStatusForm(prev => ({ ...prev, status: value }))}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Pilih status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="pending">Pending</SelectItem>
+                      <SelectItem value="lolos_berkas">Lolos Berkas</SelectItem>
+                      <SelectItem value="lolos_wawancara">Lolos Wawancara</SelectItem>
+                      <SelectItem value="diterima">Diterima</SelectItem>
+                      <SelectItem value="ditolak">Ditolak</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label htmlFor="catatan">Catatan Admin</Label>
+                  <Textarea
+                    id="catatan"
+                    placeholder="Tambahkan catatan atau feedback..."
+                    value={statusForm.catatan_admin}
+                    onChange={(e) => setStatusForm(prev => ({ ...prev, catatan_admin: e.target.value }))}
+                    rows={3}
+                  />
+                </div>
+
+                {/* ✅ UPDATED: Fields untuk status lolos_berkas dengan date & time terpisah */}
+                {statusForm.status === 'lolos_berkas' && (
+                  <>
+                    <Alert>
+                      <AlertTriangle className="w-4 h-4" />
+                      <AlertDescription>
+                        <strong>Perhatian:</strong> Untuk status "Lolos Berkas", tanggal, waktu, dan link wawancara wajib diisi.
+                      </AlertDescription>
+                    </Alert>
+
+                    {/* ✅ UPDATED: Tanggal wawancara (date input) */}
                     <div>
-                      <Label className="text-sm font-medium text-gray-600">Periode Beasiswa</Label>
-                      <p className="text-sm">
-                        {selectedApplication.period.nama_periode} ({selectedApplication.period.tahun})
-                      </p>
+                      <Label htmlFor="interview_date">
+                        Tanggal Wawancara <span className="text-red-500">*</span>
+                      </Label>
+                      <Input
+                        id="interview_date"
+                        type="date"
+                        value={statusForm.interview_date}
+                        onChange={(e) => setStatusForm(prev => ({ ...prev, interview_date: e.target.value }))}
+                        className={statusForm.interview_date.trim() === '' ? 'border-red-300 focus:border-red-500' : ''}
+                        required
+                      />
+                      {statusForm.interview_date.trim() === '' && (
+                        <p className="mt-1 text-xs text-red-500">Tanggal wawancara wajib diisi</p>
+                      )}
                     </div>
+
+                    {/* ✅ UPDATED: Waktu wawancara (time input) */}
                     <div>
-                      <Label className="text-sm font-medium text-gray-600">Tanggal Finalisasi</Label>
-                      <p className="text-sm">
-                        {selectedApplication.finalized_at 
-                          ? new Date(selectedApplication.finalized_at).toLocaleString('id-ID')
-                          : 'Belum difinalisasi'
-                        }
-                      </p>
+                      <Label htmlFor="interview_time">
+                        Waktu Wawancara <span className="text-red-500">*</span>
+                      </Label>
+                      <Input
+                        id="interview_time"
+                        type="time"
+                        value={statusForm.interview_time}
+                        onChange={(e) => setStatusForm(prev => ({ ...prev, interview_time: e.target.value }))}
+                        className={statusForm.interview_time.trim() === '' ? 'border-red-300 focus:border-red-500' : ''}
+                        required
+                      />
+                      {statusForm.interview_time.trim() === '' && (
+                        <p className="mt-1 text-xs text-red-500">Waktu wawancara wajib diisi</p>
+                      )}
+                      <p className="mt-1 text-xs text-gray-500">Format: HH:MM (contoh: 14:30)</p>
                     </div>
-                    {selectedApplication.reviewer && (
-                      <div>
-                        <Label className="text-sm font-medium">Reviewer</Label>
-                        <p className="text-sm">{selectedApplication.reviewer.name}</p>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
+
+                    <div>
+                      <Label htmlFor="interview_link">
+                        Link Wawancara <span className="text-red-500">*</span>
+                      </Label>
+                      <Input
+                        id="interview_link"
+                        type="url"
+                        placeholder="https://meet.google.com/..."
+                        value={statusForm.interview_link}
+                        onChange={(e) => setStatusForm(prev => ({ ...prev, interview_link: e.target.value }))}
+                        className={statusForm.interview_link.trim() === '' ? 'border-red-300 focus:border-red-500' : ''}
+                        required
+                      />
+                      {statusForm.interview_link.trim() === '' && (
+                        <p className="mt-1 text-xs text-red-500">Link wawancara wajib diisi</p>
+                      )}
+                      {statusForm.interview_link.trim() !== '' && !isValidUrl(statusForm.interview_link) && (
+                        <p className="mt-1 text-xs text-red-500">Format URL tidak valid</p>
+                      )}
+                    </div>
+                  </>
+                )}
               </div>
 
-              {/* Document Progress */}
-              <Card>
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-lg">Progress Dokumen</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm">Kelengkapan Dokumen</span>
-                      <span className="text-sm font-medium">
-                        {selectedApplication.verification_progress.verified_count}/
-                        {selectedApplication.verification_progress.total_required}
-                      </span>
-                    </div>
-                    <Progress value={selectedApplication.verification_progress.percentage} className="h-3" />
-                    <div className="text-xs text-muted-foreground">
-                      {selectedApplication.verification_progress.percentage}% dokumen telah terverifikasi
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setStatusDialog(false)}>
+                  Batal
+                </Button>
+                <Button
+                  onClick={updateApplicationStatus}
+                  disabled={isUpdatingStatus || !isStatusFormValid()}
+                  className={!isStatusFormValid() ? 'opacity-50 cursor-not-allowed' : ''}
+                >
+                  {isUpdatingStatus ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Memperbarui...
+                    </>
+                  ) : (
+                    'Perbarui Status'
+                  )}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
 
-              {/* Interview Info */}
-              {(selectedApplication.interview_date || selectedApplication.interview_link) && (
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-lg">Informasi Wawancara</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-2">
-                    {selectedApplication.interview_date && (
-                      <div>
-                        <Label className="text-sm font-medium">Tanggal Wawancara</Label>
-                        <p className="text-sm">
-                          {new Date(selectedApplication.interview_date).toLocaleString('id-ID')}
-                        </p>
-                      </div>
-                    )}
-                    {selectedApplication.interview_link && (
-                      <div>
-                        <Label className="text-sm font-medium">Link Wawancara</Label>
-                        <a 
-                          href={selectedApplication.interview_link} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="flex items-center text-sm text-blue-600 hover:underline"
-                        >
-                          <LinkIcon className="w-3 h-3 mr-1" />
-                          {selectedApplication.interview_link}
-                        </a>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              )}
+          {/* Bulk Update Dialog */}
+          <Dialog open={bulkDialog} onOpenChange={setBulkDialog}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Update Status Massal</DialogTitle>
+                <DialogDescription>
+                  Perbarui status untuk {selectedApplications.length} aplikasi terpilih
+                </DialogDescription>
+              </DialogHeader>
 
-              {/* Admin Notes */}
-              {selectedApplication.catatan_admin && (
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-lg">Catatan Admin</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm whitespace-pre-wrap">{selectedApplication.catatan_admin}</p>
-                  </CardContent>
-                </Card>
-              )}
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="bulk-status">Status</Label>
+                  <Select value={bulkForm.status} onValueChange={(value) => setBulkForm(prev => ({ ...prev, status: value }))}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Pilih status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="pending">Pending</SelectItem>
+                      {/* ✅ FIXED: Disable lolos_berkas untuk bulk update */}
+                      <SelectItem value="lolos_berkas" disabled>
+                        Lolos Berkas (Gunakan Update Individual)
+                      </SelectItem>
+                      <SelectItem value="lolos_wawancara">Lolos Wawancara</SelectItem>
+                      <SelectItem value="diterima">Diterima</SelectItem>
+                      <SelectItem value="ditolak">Ditolak</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  {/* ✅ FIXED: Warning untuk lolos_berkas */}
+                  {bulkForm.status === 'lolos_berkas' && (
+                    <p className="mt-1 text-xs text-red-500">
+                      Status "Lolos Berkas" memerlukan pengaturan individual untuk tanggal dan link wawancara.
+                    </p>
+                  )}
+                </div>
 
-      {/* Status Update Dialog */}
-      <Dialog open={statusDialog} onOpenChange={setStatusDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Update Status Aplikasi</DialogTitle>
-            <DialogDescription>
-              Perbarui status dan tambahkan catatan untuk aplikasi ini
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="status">Status</Label>
-              <Select value={statusForm.status} onValueChange={(value) => setStatusForm(prev => ({ ...prev, status: value }))}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Pilih status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="pending">Pending</SelectItem>
-                  <SelectItem value="lolos_berkas">Lolos Berkas</SelectItem>
-                  <SelectItem value="lolos_wawancara">Lolos Wawancara</SelectItem>
-                  <SelectItem value="diterima">Diterima</SelectItem>
-                  <SelectItem value="ditolak">Ditolak</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+                <div>
+                  <Label htmlFor="bulk-catatan">Catatan Admin</Label>
+                  <Textarea
+                    id="bulk-catatan"
+                    placeholder="Tambahkan catatan untuk semua aplikasi terpilih..."
+                    value={bulkForm.catatan_admin}
+                    onChange={(e) => setBulkForm(prev => ({ ...prev, catatan_admin: e.target.value }))}
+                    rows={3}
+                  />
+                </div>
 
-            <div>
-              <Label htmlFor="catatan">Catatan Admin</Label>
-              <Textarea
-                id="catatan"
-                placeholder="Tambahkan catatan atau feedback..."
-                value={statusForm.catatan_admin}
-                onChange={(e) => setStatusForm(prev => ({ ...prev, catatan_admin: e.target.value }))}
-                rows={3}
-              />
-            </div>
-
-            {/* ✅ UPDATED: Fields untuk status lolos_berkas dengan date & time terpisah */}
-            {statusForm.status === 'lolos_berkas' && (
-              <>
                 <Alert>
                   <AlertTriangle className="w-4 h-4" />
                   <AlertDescription>
-                    <strong>Perhatian:</strong> Untuk status "Lolos Berkas", tanggal, waktu, dan link wawancara wajib diisi.
+                    Tindakan ini akan memperbarui status {selectedApplications.length} aplikasi sekaligus dan tidak dapat dibatalkan.
                   </AlertDescription>
                 </Alert>
+              </div>
 
-                {/* ✅ UPDATED: Tanggal wawancara (date input) */}
-                <div>
-                  <Label htmlFor="interview_date">
-                    Tanggal Wawancara <span className="text-red-500">*</span>
-                  </Label>
-                  <Input
-                    id="interview_date"
-                    type="date"
-                    value={statusForm.interview_date}
-                    onChange={(e) => setStatusForm(prev => ({ ...prev, interview_date: e.target.value }))}
-                    className={statusForm.interview_date.trim() === '' ? 'border-red-300 focus:border-red-500' : ''}
-                    required
-                  />
-                  {statusForm.interview_date.trim() === '' && (
-                    <p className="mt-1 text-xs text-red-500">Tanggal wawancara wajib diisi</p>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setBulkDialog(false)}>
+                  Batal
+                </Button>
+                <Button
+                  onClick={bulkUpdateStatuses}
+                  disabled={isBulkUpdating || !bulkForm.status || bulkForm.status === 'lolos_berkas'}
+                >
+                  {isBulkUpdating ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Memperbarui...
+                    </>
+                  ) : (
+                    `Perbarui ${selectedApplications.length} Aplikasi`
                   )}
-                </div>
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
 
-                {/* ✅ UPDATED: Waktu wawancara (time input) */}
+          {/* Media Sosial Dialog */}
+          <Dialog open={mediaSosialDialog} onOpenChange={setMediaSosialDialog}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Pengaturan Link Grup WhatsApp</DialogTitle>
+                <DialogDescription>
+                  Atur link grup WhatsApp untuk peserta beasiswa yang diterima
+                </DialogDescription>
+              </DialogHeader>
+
+              <div className="space-y-4">
                 <div>
-                  <Label htmlFor="interview_time">
-                    Waktu Wawancara <span className="text-red-500">*</span>
-                  </Label>
+                  <Label htmlFor="link_grup_beasiswa">Link Grup WhatsApp Beasiswa</Label>
                   <Input
-                    id="interview_time"
-                    type="time"
-                    value={statusForm.interview_time}
-                    onChange={(e) => setStatusForm(prev => ({ ...prev, interview_time: e.target.value }))}
-                    className={statusForm.interview_time.trim() === '' ? 'border-red-300 focus:border-red-500' : ''}
-                    required
-                  />
-                  {statusForm.interview_time.trim() === '' && (
-                    <p className="mt-1 text-xs text-red-500">Waktu wawancara wajib diisi</p>
-                  )}
-                  <p className="mt-1 text-xs text-gray-500">Format: HH:MM (contoh: 14:30)</p>
-                </div>
-                
-                <div>
-                  <Label htmlFor="interview_link">
-                    Link Wawancara <span className="text-red-500">*</span>
-                  </Label>
-                  <Input
-                    id="interview_link"
+                    id="link_grup_beasiswa"
                     type="url"
-                    placeholder="https://meet.google.com/..."
-                    value={statusForm.interview_link}
-                    onChange={(e) => setStatusForm(prev => ({ ...prev, interview_link: e.target.value }))}
-                    className={statusForm.interview_link.trim() === '' ? 'border-red-300 focus:border-red-500' : ''}
-                    required
+                    placeholder="https://chat.whatsapp.com/..."
+                    value={whatsappGroupLink}
+                    onChange={(e) => setWhatsappGroupLink(e.target.value)}
                   />
-                  {statusForm.interview_link.trim() === '' && (
-                    <p className="mt-1 text-xs text-red-500">Link wawancara wajib diisi</p>
-                  )}
-                  {statusForm.interview_link.trim() !== '' && !isValidUrl(statusForm.interview_link) && (
-                    <p className="mt-1 text-xs text-red-500">Format URL tidak valid</p>
-                  )}
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    Link ini akan digunakan untuk mengundang peserta yang diterima ke grup WhatsApp beasiswa
+                  </p>
                 </div>
-              </>
-            )}
-          </div>
+              </div>
 
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setStatusDialog(false)}>
-              Batal
-            </Button>
-            <Button 
-              onClick={updateApplicationStatus} 
-              disabled={isUpdatingStatus || !isStatusFormValid()}
-              className={!isStatusFormValid() ? 'opacity-50 cursor-not-allowed' : ''}
-            >
-              {isUpdatingStatus ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Memperbarui...
-                </>
-              ) : (
-                'Perbarui Status'
-              )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setMediaSosialDialog(false)}>
+                  Batal
+                </Button>
+                <Button
+                  onClick={handleMediaSave}
+                  disabled={isMediaSaving}
+                >
+                  {isMediaSaving ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Memperbarui...
+                    </>
+                  ) : (
+                    'Perbarui Pengaturan'
+                  )}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
 
-      {/* Bulk Update Dialog */}
-      <Dialog open={bulkDialog} onOpenChange={setBulkDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Update Status Massal</DialogTitle>
-            <DialogDescription>
-              Perbarui status untuk {selectedApplications.length} aplikasi terpilih
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="bulk-status">Status</Label>
-              <Select value={bulkForm.status} onValueChange={(value) => setBulkForm(prev => ({ ...prev, status: value }))}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Pilih status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="pending">Pending</SelectItem>
-                  {/* ✅ FIXED: Disable lolos_berkas untuk bulk update */}
-                  <SelectItem value="lolos_berkas" disabled>
-                    Lolos Berkas (Gunakan Update Individual)
-                  </SelectItem>
-                  <SelectItem value="lolos_wawancara">Lolos Wawancara</SelectItem>
-                  <SelectItem value="diterima">Diterima</SelectItem>
-                  <SelectItem value="ditolak">Ditolak</SelectItem>
-                </SelectContent>
-              </Select>
-              {/* ✅ FIXED: Warning untuk lolos_berkas */}
-              {bulkForm.status === 'lolos_berkas' && (
-                <p className="mt-1 text-xs text-red-500">
-                  Status "Lolos Berkas" memerlukan pengaturan individual untuk tanggal dan link wawancara.
-                </p>
-              )}
-            </div>
 
-            <div>
-              <Label htmlFor="bulk-catatan">Catatan Admin</Label>
-              <Textarea
-                id="bulk-catatan"
-                placeholder="Tambahkan catatan untuk semua aplikasi terpilih..."
-                value={bulkForm.catatan_admin}
-                onChange={(e) => setBulkForm(prev => ({ ...prev, catatan_admin: e.target.value }))}
-                rows={3}
-              />
-            </div>
-
-            <Alert>
-              <AlertTriangle className="w-4 h-4" />
-              <AlertDescription>
-                Tindakan ini akan memperbarui status {selectedApplications.length} aplikasi sekaligus dan tidak dapat dibatalkan.
-              </AlertDescription>
-            </Alert>
-          </div>
-
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setBulkDialog(false)}>
-              Batal
-            </Button>
-            <Button 
-              onClick={bulkUpdateStatuses} 
-              disabled={isBulkUpdating || !bulkForm.status || bulkForm.status === 'lolos_berkas'}
-            >
-              {isBulkUpdating ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Memperbarui...
-                </>
-              ) : (
-                `Perbarui ${selectedApplications.length} Aplikasi`
-              )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Media Sosial Dialog */}
-      <Dialog open={mediaSosialDialog} onOpenChange={setMediaSosialDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Pengaturan Link Grup WhatsApp</DialogTitle>
-            <DialogDescription>
-              Atur link grup WhatsApp untuk peserta beasiswa yang diterima
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="link_grup_beasiswa">Link Grup WhatsApp Beasiswa</Label>
-              <Input
-                id="link_grup_beasiswa"
-                type="url"
-                placeholder="https://chat.whatsapp.com/..."
-                value={whatsappGroupLink}
-                onChange={(e) => setWhatsappGroupLink(e.target.value)}
-              />
-              <p className="mt-1 text-sm text-muted-foreground">
-                Link ini akan digunakan untuk mengundang peserta yang diterima ke grup WhatsApp beasiswa
-              </p>
-            </div>
-          </div>
-
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setMediaSosialDialog(false)}>
-              Batal
-            </Button>
-            <Button 
-              onClick={handleMediaSave} 
-              disabled={isMediaSaving}
-            >
-              {isMediaSaving ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Memperbarui...
-                </>
-              ) : (
-                'Perbarui Pengaturan'
-              )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      
-    </div>
-  )
+        </div>
+        )
 }

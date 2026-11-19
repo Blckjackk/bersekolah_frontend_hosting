@@ -269,31 +269,31 @@ export default function JadwalWawancaraPage() {
           </p>
         </div>
 
-        <Card>
+        <Card className="border-red-200">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Lock className="w-5 h-5 text-gray-400" />
+            <CardTitle className="flex items-center gap-2 text-red-800">
+              <Lock className="w-5 h-5 text-red-500" />
               Akses Terbatas
             </CardTitle>
             <CardDescription>
-              Anda belum dapat mengakses halaman ini
+              Halaman ini hanya dapat diakses oleh peserta yang lolos ke tahap wawancara
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <Alert>
-              <AlertCircle className="w-4 h-4" />
-              <AlertTitle>Belum Bisa Diakses</AlertTitle>
-              <AlertDescription>
-                {!applicationStatus?.finalized_at ? 
-                  "Silakan finalisasi berkas terlebih dahulu di halaman Seleksi Berkas." :
-                  applicationStatus.status === 'pending' ?
-                  "Menunggu hasil seleksi berkas. Halaman ini akan terbuka jika Anda lolos seleksi berkas." :
-                  applicationStatus.status === 'ditolak' ?
-                  "Mohon maaf, Anda belum lolos pada tahap seleksi berkas. Silakan cek hasil di halaman Hasil Seleksi." :
-                  "Status aplikasi Anda tidak memungkinkan untuk mengakses halaman ini."
-                }
+          <CardContent className="space-y-4">
+            <Alert variant="destructive" className="border-red-200 bg-red-50 text-red-800">
+              <AlertCircle className="w-4 h-4 text-red-600" />
+              <AlertTitle className="font-bold">Tidak Lolos Seleksi Administrasi</AlertTitle>
+              <AlertDescription className="text-red-700">
+                Maaf, Anda tidak lolos seleksi administrasi Beasiswa Bersekolah 2027. Halaman jadwal wawancara hanya diperuntukkan bagi peserta yang telah dinyatakan lolos seleksi administrasi.
               </AlertDescription>
             </Alert>
+            <div className="flex gap-3">
+              <Button asChild variant="outline">
+                <a href="/form-pendaftaran/status/kelulusan">
+                  Lihat Status Kelulusan
+                </a>
+              </Button>
+            </div>
           </CardContent>
         </Card>
       </div>

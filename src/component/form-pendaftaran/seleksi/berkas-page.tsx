@@ -345,52 +345,35 @@ export default function SeleksiBerkasPage() {
       const hasAllRequiredDocuments = completedRequiredDocs.length === requiredDocs.length && 
                                       requiredDocsVerified === requiredDocs.length
       
-      const canFinalize = hasAllRequiredDocuments && 
-                         (!applicationStatus || !applicationStatus.finalized_at)
+      // Seleksi administrasi telah ditutup
+      const canFinalize = false
 
-      let selectionStatusValue: "pending" | "lolos_berkas" | "lolos_wawancara" | "diterima" | "ditolak" | "tidak_lolos" = "pending"
+      const isCandidatePassing = ['lolos_berkas', 'lolos_wawancara', 'diterima'].includes(applicationStatus?.status || '')
+
+      let selectionStatusValue: "pending" | "lolos_berkas" | "lolos_wawancara" | "diterima" | "ditolak" | "tidak_lolos" = "tidak_lolos"
       let message = ""
       let finalizedAt = applicationStatus?.finalized_at || null
 
-      if (applicationStatus?.finalized_at) {
-        selectionStatusValue = applicationStatus.status || "pending"
+      if (isCandidatePassing) {
+        selectionStatusValue = (applicationStatus.status as any) || "lolos_berkas"
         
         switch (applicationStatus.status) {
           case "lolos_berkas":
-            message = "Selamat! Anda lolos seleksi berkas. Silakan tunggu informasi selanjutnya untuk tahap wawancara."
+            message = "Selamat! Anda dinyatakan lolos seleksi berkas administrasi dan berhak mengikuti tahap wawancara Beasiswa Bersekolah 2027. Silakan cek Jadwal Wawancara untuk informasi tanggal, waktu, dan tautan wawancara Anda."
             break
           case "lolos_wawancara":
             message = "Selamat! Anda lolos tahap wawancara. Silakan tunggu pengumuman hasil akhir."
             break
           case "diterima":
-            message = "Selamat! Anda diterima sebagai penerima beasiswa. Tim kami akan menghubungi Anda segera."
-            break
-          case "ditolak":
-            message = "Mohon maaf, aplikasi Anda belum berhasil pada periode ini. Tetap semangat dan coba lagi pada periode berikutnya!"
+            message = "Selamat! Anda diterima sebagai penerima Beasiswa Bersekolah 2027. Tim kami akan menghubungi Anda segera."
             break
           default:
-            message = "Aplikasi beasiswa Anda telah dikirim dan sedang dalam proses review oleh tim kami. Hasil akan diumumkan melalui email."
-        }
-      } else if (canFinalize) {
-        message = "Semua dokumen wajib telah lengkap dan terverifikasi! Anda dapat melakukan finalisasi berkas untuk mengirimkan aplikasi beasiswa."
-      } else if (completedRequiredDocs.length === requiredDocs.length) {
-        const pendingVerification = requiredDocs.filter(doc => 
-          doc.verification_status === "pending"
-        ).length
-        const rejectedDocs = requiredDocs.filter(doc => 
-          doc.verification_status === "rejected"
-        ).length
-        
-        if (rejectedDocs > 0) {
-          message = `Ada ${rejectedDocs} dokumen yang ditolak. Silakan perbaiki dan unggah ulang dokumen yang ditolak.`
-        } else if (pendingVerification > 0) {
-          message = `Semua dokumen wajib telah diunggah. ${pendingVerification} dokumen sedang dalam proses verifikasi oleh tim kami.`
-        } else {
-          message = "Semua dokumen telah diunggah, sedang menunggu verifikasi dari admin."
+            message = "Selamat! Anda lolos seleksi berkas."
         }
       } else {
-        const missingCount = requiredDocs.length - completedRequiredDocs.length
-        message = `Masih ada ${missingCount} dokumen wajib yang belum lengkap. Silakan lengkapi terlebih dahulu.`
+        // Semua selain lolos wawancara / lolos berkas / diterima dinyatakan tidak lolos seleksi administrasi
+        selectionStatusValue = "tidak_lolos"
+        message = "Maaf, Anda tidak lolos seleksi administrasi Beasiswa Bersekolah 2027. Terima kasih atas partisipasi dan antusiasme Anda dalam proses pendaftaran Beasiswa Bersekolah. Seluruh berkas pendaftar telah melalui proses penilaian administrasi yang ketat. Tetap semangat dalam menempuh pendidikan dan jangan pernah menyerah dalam mengejar cita-citamu!"
       }
 
       const statusData: SelectionStatus = {
@@ -485,64 +468,35 @@ export default function SeleksiBerkasPage() {
   const getStatusBadge = () => {
     if (!selectionStatus) return null
 
-    if (selectionStatus.finalized_at) {
-      switch (selectionStatus.status) {
-        case "lolos_berkas":
-          return (
-            <Badge className="px-4 py-2 text-sm text-green-800 bg-green-100 hover:bg-green-100">
-              <CheckCircle2 className="w-4 h-4 mr-2" />
-              Lolos Seleksi Berkas
-            </Badge>
-          )
-        case "lolos_wawancara":
-          return (
-            <Badge className="px-4 py-2 text-sm text-blue-800 bg-blue-100 hover:bg-blue-100">
-              <CheckCircle2 className="w-4 h-4 mr-2" />
-              Lolos Wawancara
-            </Badge>
-          )
-        case "diterima":
-          return (
-            <Badge className="px-4 py-2 text-sm text-emerald-800 bg-emerald-100 hover:bg-emerald-100">
-              <CheckCircle2 className="w-4 h-4 mr-2" />
-              Diterima
-            </Badge>
-          )
-        case "ditolak":
-          return (
-            <Badge variant="destructive" className="px-4 py-2 text-sm">
-              <XCircle className="w-4 h-4 mr-2" />
-              Tidak Lolos
-            </Badge>
-          )
-        default:
-          return (
-            <Badge className="px-4 py-2 text-sm text-blue-800 bg-blue-100 hover:bg-blue-100">
-              <Send className="w-4 h-4 mr-2" />
-              Sedang Direview
-            </Badge>
-          )
-      }
-    }
-
-    if (selectionStatus.can_finalize) {
-      return (
-        <Badge className="px-4 py-2 text-sm text-green-800 bg-green-100 hover:bg-green-100">
-          <ShieldCheck className="w-4 h-4 mr-2" />
-          Siap Dikirim
-        </Badge>
-      )
-    } else {
-      const isComplete = selectionStatus.completed_required === selectionStatus.required_documents
-      return (
-        <Badge 
-          variant="outline" 
-          className={`px-4 py-2 text-sm ${isComplete ? 'text-yellow-800 bg-yellow-100 border-yellow-200' : 'text-gray-600 bg-gray-100 border-gray-200'}`}
-        >
-          <Clock className="w-4 h-4 mr-2" />
-          {isComplete ? "Menunggu Verifikasi" : "Belum Lengkap"}
-        </Badge>
-      )
+    switch (selectionStatus.status) {
+      case "lolos_berkas":
+        return (
+          <Badge className="px-4 py-2 text-sm text-green-800 bg-green-100 hover:bg-green-100">
+            <CheckCircle2 className="w-4 h-4 mr-2" />
+            Lolos Seleksi Berkas
+          </Badge>
+        )
+      case "lolos_wawancara":
+        return (
+          <Badge className="px-4 py-2 text-sm text-blue-800 bg-blue-100 hover:bg-blue-100">
+            <CheckCircle2 className="w-4 h-4 mr-2" />
+            Lolos Wawancara
+          </Badge>
+        )
+      case "diterima":
+        return (
+          <Badge className="px-4 py-2 text-sm text-emerald-800 bg-emerald-100 hover:bg-emerald-100">
+            <CheckCircle2 className="w-4 h-4 mr-2" />
+            Diterima
+          </Badge>
+        )
+      default:
+        return (
+          <Badge variant="destructive" className="px-4 py-2 text-sm">
+            <XCircle className="w-4 h-4 mr-2" />
+            Tidak Lolos Seleksi Administrasi
+          </Badge>
+        )
     }
   };
 
@@ -714,8 +668,24 @@ export default function SeleksiBerkasPage() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="p-4 mb-4 rounded-lg bg-gray-50">
-              <p className="text-sm">{selectionStatus.message}</p>
+            <div className={`p-4 mb-4 rounded-lg border ${
+              ['lolos_berkas', 'lolos_wawancara', 'diterima'].includes(selectionStatus.status)
+                ? 'bg-blue-50 border-blue-200 text-blue-900'
+                : 'bg-red-50 border-red-200 text-red-900'
+            }`}>
+              <div className="flex items-start gap-3">
+                {['lolos_berkas', 'lolos_wawancara', 'diterima'].includes(selectionStatus.status) ? (
+                  <CheckCircle2 className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                ) : (
+                  <XCircle className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
+                )}
+                <div>
+                  <h4 className="font-semibold text-sm mb-1">
+                    {['lolos_berkas', 'lolos_wawancara', 'diterima'].includes(selectionStatus.status) ? 'Selamat!' : 'Mohon Maaf'}
+                  </h4>
+                  <p className="text-sm leading-relaxed">{selectionStatus.message}</p>
+                </div>
+              </div>
             </div>
             
             {/* Finalize Button */}
